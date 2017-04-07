@@ -17,6 +17,9 @@ This is a university project from the University of Applied Sciences Duesseldorf
 - Full Sphere Panning (Azimuth & Elevation)
 - Graphical Feedback
 - Individualization of Head Characteristics, e.g. Ear Distance (ITD)
+- Early Reflections 
+- Variable Distance  
+- Headtracking
 - Access to SOFA Metadata (view only)
 - Different interpolation (for positions between measured HRTFs) and fading (for fast modulation of the position) techniques
 - … and of course bugfixes and improved audio quality.

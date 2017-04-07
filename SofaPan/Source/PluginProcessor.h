@@ -14,6 +14,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "fftw3.h"
+#include "SOFAData.h"
 
 
 //Interface für SOFA File:
@@ -100,12 +101,8 @@ public:
     AudioParameterFloat* panParam;
     AudioParameterFloat* bypassParam;
     String pathToSOFAFile = String(SOFA_DEFAULT_PATH);
-    
-    struct Measurement_Metadata {
-        int HRIR_Samplingrate;
-        int HRIR_numMeasurements;
-        size_t HRIR_numSamples;
-    } metadata_struct;
+    sofaMetadataStruct metadata_sofafile;
+    void initData(String sofaFile);
     
 private:
     //==============================================================================
@@ -126,9 +123,6 @@ private:
      Der Datentyp fftw_complex ist im prinzip nur ein 2-stelliges array von float*/
     fftwf_complex* complexBuffer;
     
-    //Fouriertransformierte der FIR Impulsantwort
-    fftwf_complex* firCoeffsL;
-    fftwf_complex* firCoeffsR;
     fftwf_complex* src;
     
     /* Der "Plan" ist die Kernkomponente von FFTW. Hier wird zu programmbeginn die auszuführende FFT definiert, die dann einfach mittels "execute(plan)" ausgeführt wird */
@@ -136,13 +130,13 @@ private:
     fftwf_plan inverseL;
     fftwf_plan inverseR;
     
-    HRIR_Measurement **myFile;
-    
-    AudioBuffer<float> monoSumBuffer;
-    
+    // Buffer for collecting samples for the Fast Convolution
+    // everything with a 2 = mirrored version to do crossfades between two HRTF-Convolutions
     AudioBuffer<float> collectSampleBuffer1;
     AudioBuffer<float> collectSampleBuffer2;
     
+    // Outputbuffers for the iFFT
+    // The A´s and B´s are the overlap-add pairs. The 1´s and 2´s are the two mirrored paths for crossfading
     AudioBuffer<float> overlapAddOutA1;
     AudioBuffer<float> overlapAddOutB1;
     AudioBuffer<float> overlapAddOutA2;
@@ -158,6 +152,14 @@ private:
     
     int SOFAFile_loaded_flag;
     void createPassThrough_FIR();
+    
+    float sampleRate_f;
+    
+    SOFAData* HRTFs;
+    
+
+    
+    
 };
 
 

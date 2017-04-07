@@ -119,10 +119,10 @@ void SofaPanAudioProcessorEditor::timerCallback() {
     panner.setValue(paramDegreeValue, NotificationType::dontSendNotification);
     bypassButton.setToggleState((bool)getParameterValue("bypass"), NotificationType::dontSendNotification);
     
-    juce::String numMeasurement_Note = static_cast <String> (processor.metadata_struct.HRIR_numMeasurements);
+    juce::String numMeasurement_Note = static_cast <String> (processor.metadata_sofafile.numMeasurements);
     showSOFADimensions_numMeasurements.setText(numMeasurement_Note, NotificationType::sendNotification);
     
-    juce::String numSamples_Note = static_cast <String> (processor.metadata_struct.HRIR_numSamples);
+    juce::String numSamples_Note = static_cast <String> (processor.metadata_sofafile.numSamples);
     showSOFADimensions_numSamples.setText(numSamples_Note, NotificationType::sendNotification);
     
 }
@@ -195,18 +195,19 @@ void SofaPanAudioProcessorEditor::buttonClicked(Button *button){
         
         if (fc.browseForFileToOpen())
         {
-            int loadSOFA_status;
             String chosen = fc.getResult().getFullPathName();
             processor.setSOFAFilePath(chosen);
-            if (loadSOFA_status = processor.LoadSOFAFile())
-            {
-                processor.ErrorHandling_LoadSOFAFile(loadSOFA_status);
-            }
-            else
-            {
-                AlertWindow::showNativeDialogBox("Binaural Renderer", "SOFA File successfully loaded", false);
-                
-            }
+            processor.initData(chosen);
+//            int loadSOFA_status = processor.LoadSOFAFile();
+//            if (loadSOFA_status)
+//            {
+//                processor.ErrorHandling_LoadSOFAFile(loadSOFA_status);
+//            }
+//            else
+//            {
+//                AlertWindow::showNativeDialogBox("Binaural Renderer", "SOFA File successfully loaded", false);
+//                
+//            }
         }
     }
     

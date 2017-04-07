@@ -1,0 +1,122 @@
+/*
+  ==============================================================================
+
+    SOFAData.h
+    Created: 4 Apr 2017 11:47:12am
+    Author:  David Bau
+
+  ==============================================================================
+*/
+
+#ifndef SOFAData_H_INCLUDED
+#define SOFAData_H_INCLUDED
+
+#include "fftw3.h"
+extern "C" {
+#include <netcdf.h>
+}
+#include "string.h"
+#include <stdlib.h>
+#include "math.h"
+
+
+typedef struct{
+    int sampleRate;
+    int numMeasurements;
+    int numMeasurements0ev;
+    int numSamples;
+    int numReceivers;
+    char* dataType;
+    char* organization;
+    char* RoomType;
+    char* SOFAConventions;
+    char* listenerShortName;
+    char* comment;
+    
+} sofaMetadataStruct;
+
+
+class Single_HRIR_Measurement {
+public:
+    Single_HRIR_Measurement(int lengthHRIR, int lengthHRTF){
+        IR_Left = fftwf_alloc_real(lengthHRIR);
+        IR_Right = fftwf_alloc_real(lengthHRIR);
+        HRTF = fftwf_alloc_complex(lengthHRTF * 2);
+        
+        
+    }
+    ~Single_HRIR_Measurement(){
+
+        
+        fftwf_free(IR_Left); //not allocated when freed
+        fftwf_free(IR_Right);
+        fftwf_free(HRTF);
+        
+    }
+    void setValues(float azimuth, float elevation, float distance){
+        Elevation = elevation; Azimuth = azimuth; Distance = distance;
+    }
+    float *getIR_Left(){return  IR_Left;}//only for transformation
+    float *getIR_Right(){return IR_Right;}//only for transformation
+    fftwf_complex* getHRTF(){return HRTF;}
+    
+    float Elevation;
+    float Azimuth;
+    float Distance;
+    int index;
+    
+private:
+    float *IR_Left; //only for transformation
+    float *IR_Right;//only for transformation
+    fftwf_complex* HRTF;
+    
+};
+
+
+
+
+
+class SOFAData{
+public:
+    SOFAData(const char* filePath, int sampleRate);
+    ~SOFAData();
+    
+    /** Will directly return the length of the new resampled HRTF */
+    int setSampleRate(int newSampleRate);
+    
+    /**
+     Get the closest HRTF for a given elevation & azimuth. The function will return a pointer to the TF-Values (complex numbers): the left TF first, followed directly by the right TF. The returned HRTF has a length of 2*(HRIRlength/2 + 1): [ L=N/2+1 | R=N/2+1 ].
+     */
+    fftwf_complex* getHRTFforAngle(float elevation, float azimuth);
+    
+    sofaMetadataStruct getMetadata();
+    
+    /** Returns the length of the interpolated(!) Impulse Response in samples */
+    int getLengthOfHRIR();
+    
+private:
+    
+    /** Number of Samples in the samplerate-converted HRIRs */
+    int lengthOfHRIR;
+    /** Has to be double the size of HRIR (due to linear convolution) */
+    int lengthOfFFT;
+    /** Number of Frequency-Bins FFTLength/2 + 1: will be the length of the samplerate-converted HRTFs */
+    int lengthOfHRTF;
+    
+    
+    fftwf_complex* theStoredHRTFs;
+    int lengthOfHRTFStorage;
+    int loadSofaFile(const char* filePath, int hostSampleRate);
+    
+    Single_HRIR_Measurement** loadedHRIRs;
+
+    
+    void error(char* errorMessage);
+    
+    sofaMetadataStruct sofaMetadata;
+    
+};
+
+
+
+#endif  // SOFAData_H_INCLUDED
