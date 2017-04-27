@@ -18,7 +18,13 @@ extern "C" {
 #include "string.h"
 #include <stdlib.h>
 #include "math.h"
+#include "../JuceLibraryCode/JuceHeader.h"
 
+#define ERR_MEM_ALLOC   1
+#define ERR_READFILE    2
+#define ERR_UNKNOWN     3
+#define ERR_OPENFILE    4
+#define ERR_NOTSUP      5
 
 typedef struct{
     int sampleRate;
@@ -26,12 +32,14 @@ typedef struct{
     int numMeasurements0ev;
     int numSamples;
     int numReceivers;
-    char* dataType;
-    char* organization;
-    char* RoomType;
-    char* SOFAConventions;
-    char* listenerShortName;
-    char* comment;
+    String dataType;
+    String organization;
+    String RoomType;
+    String SOFAConventions;
+    String listenerShortName;
+    String comment;
+    float minElevation;
+    float maxElevation;
     
 } sofaMetadataStruct;
 
@@ -110,10 +118,14 @@ private:
     
     Single_HRIR_Measurement** loadedHRIRs;
 
-    
-    void error(char* errorMessage);
+    void errorHandling(int status);
+    String errorDesc;
+    void createPassThrough_FIR(int _sampleRate);
     
     sofaMetadataStruct sofaMetadata;
+    
+    String getSOFAGlobalAttribute(const char* attribute_ID, int ncid);
+    
     
 };
 

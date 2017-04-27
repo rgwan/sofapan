@@ -99,10 +99,12 @@ public:
     
     //Parameters
     AudioParameterFloat* panParam;
+    AudioParameterFloat* elevationParam;
     AudioParameterFloat* bypassParam;
     String pathToSOFAFile = String(SOFA_DEFAULT_PATH);
     sofaMetadataStruct metadata_sofafile;
     void initData(String sofaFile);
+    bool updateSofaMetadataFlag;
     
 private:
     //==============================================================================
@@ -150,7 +152,6 @@ private:
     float scale;
     int complexLength;
     
-    int SOFAFile_loaded_flag;
     void createPassThrough_FIR();
     
     float sampleRate_f;

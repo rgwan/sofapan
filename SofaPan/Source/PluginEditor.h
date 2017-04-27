@@ -15,7 +15,13 @@
 #include "PluginProcessor.h"
 
 #include "customLookAndFeel.h"
+#include "elevationSliderLookAndFeel.h"
 #include "LogoHexData.h"
+#include "HeadTopHexData.h"
+#include "HeadSideHexData.h"
+#include "SpeakerHexData.h"
+
+
 
 //==============================================================================
 /**
@@ -39,15 +45,33 @@ private:
     // access the processor object that created it.
     SofaPanAudioProcessor& processor;
     
-    Slider panner;
+    Slider panner_az;
+    Slider panner_el;
     TextButton loadSOFAButton;
     ToggleButton bypassButton;
-    Label showSOFADimensions_numMeasurements_label;
-    Label showSOFADimensions_numMeasurements;
-    Label showSOFADimensions_numSamples;
-    Label showSOFADimensions_numSamples_label;
+    const String measurementsID =       String("Measurements:         ");
+    const String samplesID =            String("Samples:              ");
+    const String sofaConventionID =     String("SOFA Convention:      ");
+    const String dataTypeID =           String("Data Type:            ");
+    const String organizationID =       String("Organization:         ");
+    const String listenerShortNameID =  String("Listener Short Name:  ");
+    const String roomTypeID =           String("Room Type:            ");
+    const String elevationRangID =      String("Elevation Range:      ");
+    const String commentID =            String("Comment:              ");
+    const String sofaMetadataID = String(measurementsID + "\n" +
+                                         samplesID + "\n" +
+                                         sofaConventionID + "\n" +
+                                         dataTypeID + "\n" +
+                                         organizationID + "\n" +
+                                         listenerShortNameID + "\n" +
+                                         roomTypeID + "\n" +
+                                         elevationRangID + "\n" +
+                                         commentID);
+    
+    String sofaMetadataValue;
     
     CustomLookAndFeel customLookAndFeel;
+    ElevationSliderLookAndFeel elSliderLookAndFeel;
     
     AudioProcessorParameter* getParameter (const String& paramId);
     float getParameterValue (const String& paramId);
@@ -56,6 +80,11 @@ private:
     void sliderDragStarted(Slider* slider);
     void sliderDragEnded(Slider* slider);
 
+    Image speakerImage;
+    Image headTopImage;
+    Image headSideImage;
+    
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SofaPanAudioProcessorEditor)
 };
 

@@ -1849,7 +1849,11 @@
   <ItemGroup>
     <ClInclude Include="..\..\Source\SOFAData.h"/>
     <ClInclude Include="..\..\Source\GUI\customLookAndFeel.h"/>
+    <ClInclude Include="..\..\Source\GUI\elevationSliderLookAndFeel.h"/>
+    <ClInclude Include="..\..\Source\GUI\HeadSideHexData.h"/>
+    <ClInclude Include="..\..\Source\GUI\HeadTopHexData.h"/>
     <ClInclude Include="..\..\Source\GUI\LogoHexData.h"/>
+    <ClInclude Include="..\..\Source\GUI\SpeakerHexData.h"/>
     <ClInclude Include="..\..\Source\PluginProcessor.h"/>
     <ClInclude Include="..\..\Source\PluginEditor.h"/>
     <ClInclude Include="..\..\..\..\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>

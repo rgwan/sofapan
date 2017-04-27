@@ -1,25 +1,25 @@
 /*
   ==============================================================================
 
-    customLookAndFeel.h
+    elevationSliderLookAndFeel.h
     Created: 14 Dec 2016 3:25:21pm
     Author:  David Bau
 
   ==============================================================================
 */
 
-#ifndef CUSTOMLOOKANDFEEL_H_INCLUDED
-#define CUSTOMLOOKANDFEEL_H_INCLUDED
+#ifndef ELEVATIONSLIDERLOOKANDFEEL_H_INCLUDED
+#define ELEVATIONSLIDERLOOKANDFEEL_H_INCLUDED
 
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
-class CustomLookAndFeel : public LookAndFeel_V3
+class ElevationSliderLookAndFeel : public LookAndFeel_V3
 {
 public:
     //==============================================================================
-    CustomLookAndFeel()
+    ElevationSliderLookAndFeel()
     {
         setColour (ResizableWindow::backgroundColourId, windowBackgroundColour);
         setColour (TextButton::buttonOnColourId, brightButtonColour);
@@ -185,7 +185,6 @@ public:
         Rectangle<int> r = Rectangle<int>(x, y, width, width);
         
         
-        
         const int borderlineThickness = 4;
         const int innerRadius = r.getWidth() * 0.5 - 10;
         const int innerThickness = innerRadius / 2;
@@ -193,20 +192,21 @@ public:
         const float thumbThickness = thumbSize * 0.5;
         const float markerSize = thumbSize * 0.7;
         const float markerThickness = borderlineThickness * 0.5;
-        
-        
-        
+
         //Outer Circle (size = full rectangle, non-adaptive thickness)
         g.setColour(sliderInactivePart);
         const int t_2 = borderlineThickness * 0.5;
-        g.drawEllipse(r.getX() + t_2,
-                      r.getY() + t_2,
-                      r.getWidth() - 2*t_2,
-                      r.getWidth() - 2*t_2,
-                      borderlineThickness);
         
-        AffineTransform rotate;
-
+        Path outerCircle;
+        outerCircle.addCentredArc(r.getCentreX(), r.getCentreY(),
+                                  r.getWidth()/2.0 - t_2, r.getWidth()/2.0 - t_2, 0,
+                                  0, M_PI * 2.0,
+                                  true);
+        g.strokePath(outerCircle, PathStrokeType(borderlineThickness));
+        
+        
+        
+        
         
         //Inner Circle (size = always 10px smaller than outer circle)
         g.setColour(Colour(knobBackgroundColour));
@@ -216,6 +216,11 @@ public:
                                   rotaryStartAngle - 0.01, rotaryEndAngle + 0.01,
                                   true);
         g.strokePath(innerCircle, PathStrokeType(innerThickness ));
+        
+//        Rectangle<int> innerCircle = r.withSizeKeepingCentre(innerRadius*2, innerRadius*2);
+//        g.setColour(Colour(knobBackgroundColour));
+//        g.fillEllipse(innerCircle.toFloat());
+        
         
         float angle;
         
@@ -228,6 +233,7 @@ public:
         g.setColour(sliderActivePart);
         
         //rotate to knob position (knobPos*range + startAngle)
+        AffineTransform rotate;
         rotate = AffineTransform::rotation(angle, r.getCentreX(), r.getCentreY());
         g.addTransform(rotate);
         g.setColour(sliderActivePart);
@@ -275,4 +281,4 @@ public:
 
 
 
-#endif  // CUSTOMLOOKANDFEEL_H_INCLUDED
+#endif  // ELEVATIONSLIDERLOOKANDFEEL_H_INCLUDED

@@ -21,8 +21,10 @@ SOFAData::SOFAData(const char* filePath, int sampleRate){
     
     // LOAD SOFA FILE
     int status = loadSofaFile(filePath, sampleRate);
-    if(status)
-        printf("\n SofaFileGoneWrong: %d \n", status);
+    if(status){
+        errorHandling(status);
+        createPassThrough_FIR(sampleRate);
+    }
     
     //Allocate and init FFTW
     float* fftInputBuffer = fftwf_alloc_real(lengthOfFFT);
@@ -63,8 +65,6 @@ SOFAData::SOFAData(const char* filePath, int sampleRate){
         
     }
     
-    
-    
     fftwf_free(fftInputBuffer);
     fftwf_free(fftOutputBuffer);
     fftwf_destroy_plan(FFT);
@@ -73,8 +73,6 @@ SOFAData::SOFAData(const char* filePath, int sampleRate){
 //    printf("\n SOFAData: SourcePositions: %d", sofaMetadata.numMeasurements);
 //    printf("\n SOFAData: HRIRLength: %d", lengthOfHRIR);
 //    printf("\n SOFAData: HRTFLength: %d", lengthOfHRTF);
-    
-
     
 }
 
@@ -97,7 +95,7 @@ int SOFAData::getLengthOfHRIR(){
 
 fftwf_complex* SOFAData::getHRTFforAngle(float elevation, float azimuth){
  
-    printf("getHRTF");
+    //printf("getHRTF");
     int best_id = 0;
     
     float delta;
@@ -109,17 +107,7 @@ fftwf_complex* SOFAData::getHRTFforAngle(float elevation, float azimuth){
             min_delta = delta ;
             best_id = i;
         }
-        //printf("\n %d Az: %.1f, El: %.1f, mD: %.1f, d: %.1f, b_id: %d", i, loadedHRIRs[i]->Azimuth, loadedHRIRs[i]->Elevation, min_delta, delta, best_id);
     }
-    //printf("\n returning index: %d for angle: %f", best_id, azimuth);
-   
-    //printf("\n best id = %d", best_id);
-//        for(int k = 0; k < lengthOfHRTF; k++){
-//            printf("\n %d: %f ", k, loadedHRIRs[best_id]->getHRTF()[k][0]);
-//        }
-    
-    
-    
     return loadedHRIRs[best_id]->getHRTF();
 }
 
@@ -138,23 +126,23 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     int  status;               /* error status */
     int  ncid;                 /* netCDF ID */
     if ((status = nc_open(filePath, NC_NOWRITE, &ncid)))
-        return 1;
+        return ERR_OPENFILE;
     
-    //Get SOFA Data Type (should be FIR)
-    size_t DataType_len;
-    if ((status = nc_inq_attlen(ncid, NC_GLOBAL, "DataType", &DataType_len)))
-        return 2;
-    char DataType[DataType_len+1];
-    if ((status = nc_get_att(ncid, NC_GLOBAL, "DataType", &DataType)))
-        return 3;
-    //Check if Type is FIR, else we cannot handle it
-    if(strncmp(DataType, "FIR", DataType_len)){
-        //error((char*)"Type is not FIR. Only FIR supported");
-        return 4;
+    /* -- check if attribute "SOFAConventions" is "SimpleFreeFieldHRIR": -- */
+    String sofa_conv = getSOFAGlobalAttribute("SOFAConventions", ncid);
+    if(sofa_conv.compare("SimpleFreeFieldHRIR")){
+        nc_close(ncid);
+        return ERR_NOTSUP;
     }
+    sofaMetadata.SOFAConventions = sofa_conv;
     
-    sofaMetadata.dataType = DataType;
-    
+    String data_type = getSOFAGlobalAttribute("DataType", ncid);
+    if(data_type.compare("FIR")){
+        nc_close(ncid);
+        return ERR_NOTSUP;
+    }
+    sofaMetadata.dataType = data_type;
+
     //Get Sampling Rate
     int SamplingRate, SamplingRate_id;
     status = nc_inq_varid(ncid, "Data.SamplingRate", &SamplingRate_id);
@@ -162,45 +150,28 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     if(status != NC_NOERR){
         //error((char*)"Load Sofa: Could not read Sample Rate");
         nc_close(ncid);
-        return 5;
+        return ERR_READFILE;
     }
     sofaMetadata.sampleRate = SamplingRate;
     
     
     //Get various Metadata
-    size_t organizationLength;
-    if((status = nc_inq_attlen(ncid, NC_GLOBAL, "Organization", &organizationLength)))
-        return 6;
-    char organization[organizationLength+1];
-    if ((status = nc_get_att(ncid, NC_GLOBAL, "Organization", &organization)))
-        return 7;
-    
-    sofaMetadata.organization = organization;
-    
+    sofaMetadata.organization = getSOFAGlobalAttribute("Organization", ncid);
+    sofaMetadata.RoomType = getSOFAGlobalAttribute("RoomType", ncid);
+    sofaMetadata.listenerShortName = getSOFAGlobalAttribute("ListenerShortName", ncid);
+    sofaMetadata.comment = getSOFAGlobalAttribute("Comment", ncid);
     /*
      .
      .  more to be added
      .
      */
-    /* -- check if attribute "SOFAConventions" is "SimpleFreeFieldHRIR": -- */
-    size_t i_att_len;
-    nc_inq_attlen(ncid, NC_GLOBAL, "SOFAConventions", &i_att_len);
-    char sofa_conventions[i_att_len + 1];
-    nc_get_att_text(ncid, NC_GLOBAL, "SOFAConventions", sofa_conventions);
-    *(sofa_conventions + i_att_len ) = 0; //??
-    if ( strncmp( "SimpleFreeFieldHRIR" , sofa_conventions, i_att_len ) )
-    {
-        //error((char*) "Not a SimpleFreeFieldHRIR file!");
-        nc_close(ncid);
-        return 8;
-    }
-    
 
+    
     
     //Get netcdf-ID of IR Data
     int DataIR_id;
     if ((status = nc_inq_varid(ncid, "Data.IR", &DataIR_id)))//Get Impulse Resopnse Data ID
-        return 9;
+        return ERR_READFILE;
     
     //Get Dimensions of Data IR
     int DataIR_dimidsp[MAX_VAR_DIMS];
@@ -209,16 +180,15 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     size_t dimN_len;//Number of DataSamples describing each Measurement
     
     if ((status = nc_inq_var(ncid, DataIR_id, 0, 0, 0, DataIR_dimidsp, 0)))
-        return 10;
+        return ERR_READFILE;
     if ((status = nc_inq_dimlen(ncid, DataIR_dimidsp[0], &dimM_len)))
-        return 11;
+        return ERR_READFILE;
     if ((status = nc_inq_dimlen(ncid, DataIR_dimidsp[1], &dimR_len)))
-        return 12;
+        return ERR_READFILE;
     if ((status = nc_inq_dimlen(ncid, DataIR_dimidsp[2], &dimN_len)))
-        return 13;
+        return ERR_READFILE;
     if(dimR_len != 2){
-        //error((char*) "Only 2 ears allowed!");
-        return 14;
+        return ERR_NOTSUP;
     }
     sofaMetadata.numSamples = dimN_len; //Store Value in Struct metadata_struct
     sofaMetadata.numMeasurements = dimM_len;
@@ -233,23 +203,27 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     //Get Source Positions (Azimuth, Elevation, Distance)
     int SourcePosition_id;
     if ((status = nc_inq_varid(ncid, "SourcePosition", &SourcePosition_id)))
-        return 15;
+        return ERR_READFILE;
     float* SourcePosition = NULL;
     SourcePosition = (float*)malloc(sizeof(float) * 3 * dimM_len); //Allocate Memory for Sourcepositions of each Measurement
+    if(SourcePosition == NULL)
+        return ERR_MEM_ALLOC;
     if ((status = nc_get_var_float(ncid, SourcePosition_id, SourcePosition)))// Store Sourceposition Data to Array
     {
         free(SourcePosition);
-        return 16;
+        return ERR_READFILE;
     };
     
     //Get Impluse Responses
     float *DataIR = NULL;
-    DataIR = (float*)malloc(dimM_len * dimR_len * dimN_len * sizeof(float)); //Allocate Memory for Impulse Responses, for performance reasons data must be stored in arry instead of matrix
+    DataIR = (float*)malloc(dimM_len * dimR_len * dimN_len * sizeof(float));
+    if(DataIR == NULL)
+        return ERR_MEM_ALLOC;
     if ((status = nc_get_var_float(ncid, DataIR_id, DataIR))) //Read and write Data IR to variable Data IR
     {
         free(SourcePosition);
         free(DataIR);
-        return 17;
+        return ERR_READFILE;
     };
     
     int numZeroElevation = 0;
@@ -264,14 +238,16 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     
     loadedHRIRs = (Single_HRIR_Measurement**)malloc(sofaMetadata.numMeasurements * sizeof(Single_HRIR_Measurement));
     if(loadedHRIRs == NULL){
-        //error((char*)"Couldn´t allocate memory for HRTF Data");
-        return 666;
+        return ERR_MEM_ALLOC;
     }
-//    printf("\n Size of HRIRMeasurement: %lu byte", sizeof(Single_HRIR_Measurement));
-//    printf("\n Allocated memory: %lu byte", sofaMetadata.numMeasurements * sizeof(Single_HRIR_Measurement));
-//    
+
+    sofaMetadata.minElevation = 0.0;
+    sofaMetadata.maxElevation = 0.0;
     int i = 0, j = 0, l = 0, x = 0;
     for (i = 0; i < dimM_len; i++) {
+        
+        if(SourcePosition[l+1] < sofaMetadata.minElevation) sofaMetadata.minElevation = SourcePosition[l+1];
+        if(SourcePosition[l+1] > sofaMetadata.maxElevation) sofaMetadata.maxElevation = SourcePosition[l+1];
         
         Single_HRIR_Measurement *measurement_object = new Single_HRIR_Measurement(lengthOfHRIR, lengthOfHRTF);
         //Temporary storage of HRIR-Data
@@ -303,13 +279,8 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     
     free(SourcePosition);
     free(DataIR);
-    if ((status = nc_close(ncid)))
-    {
-        //wenn es einem Fehler beim schließen gibt, muss ja nicht gleich alles weggeworfen werden
-//        free(loadedHRIRs);
-//        loadedHRIRs = NULL;
-        return 1;
-    };
+    nc_close(ncid);
+
     //SOFAFile_loaded_flag = 1;
     return 0;
 
@@ -366,50 +337,97 @@ int getIRLengthForNewSampleRate(int IR_Length, int original_SR, int new_SR){
 }
 
 
-// TODO error Handling: kopiert, sollte hier eingefügt werden
+void SOFAData::errorHandling(int status) {
+    String ErrorMessage;
+    switch (status) {
+        case ERR_MEM_ALLOC:
+            ErrorMessage = "Error: Memory allocation";
+            break;
+        case ERR_READFILE:
+            ErrorMessage = "Error while reading from File";
+            break;
+        case ERR_NOTSUP:
+            ErrorMessage = "This file contains data that is not supported";
+            break;
+        case ERR_OPENFILE:
+            ErrorMessage = "Could not open file";
+            break;
+        case ERR_UNKNOWN:
+            ErrorMessage = "An Error occured during loading the File";
+            break;
+        default:
+            ErrorMessage = "An Error occured during loading the File";
+            break;
+    }
+    
+    
+    AlertWindow::showNativeDialogBox("Binaural Renderer", ErrorMessage, false);
+    
 
-//int SofaPanAudioProcessor::ErrorHandling_LoadSOFAFile(int status) {
-//    switch (status) {
-//        case 1:
-//            pathToSOFAFile = String(SOFA_DEFAULT_PATH);
-//            if (LoadSOFAFile()) {
-//                createPassThrough_FIR();
-//                AlertWindow::showNativeDialogBox("Binaural Renderer", "Could not find Default HRTF. No HRTF loaded.", false);
-//            }
-//            else {
-//                AlertWindow::showNativeDialogBox("Binaural Renderer", "SOFA File could not be loaded. Default HRTF loaded.", false);
-//            }
-//    }
-//    
-//    //juce::String errorstring = static_cast <String> (loadSofa_errorstatus);
-//    //AlertWindow::showMessageBox(AlertWindow::NoIcon, "SOFA Errorhandling", errorstring);
-//    return 0;
-//    
-//}
+}
 //
 //
 //
-//void SofaPanAudioProcessor::createPassThrough_FIR(){
-//    metadata_struct.HRIR_Samplingrate = 44100;
-//    metadata_struct.HRIR_numSamples = 256;
-//    metadata_struct.HRIR_numMeasurements = 1;
-//    myFile = (HRIR_Measurement**)malloc(1 * sizeof(HRIR_Measurement));
-//    HRIR_Measurement *measurement_object = new HRIR_Measurement(256);
-//    
-//    
-//    float *IR_Left = (float *)malloc(256 * sizeof(float));
-//    float *IR_Right = (float *)malloc(256 * sizeof(float));
-//    
-//    IR_Left[0]  = 1.0;
-//    IR_Right[0] = 1.0;
-//    for (int j = 1; j < 256; j++) {
-//        IR_Left[j]  = 0.0;
-//        IR_Right[j] = 0.0;
-//    };
-//    float Azimuth = 0.0;
-//    float Elevation = 0.0;
-//    float Distance = 0.0;
-//    measurement_object->setValues(IR_Left, IR_Right, Elevation, Azimuth, Distance);
-//    myFile[0] = measurement_object;
-//    SOFAFile_loaded_flag = 1;
-//}
+void SOFAData::createPassThrough_FIR(int _sampleRate){
+
+    
+    sofaMetadata.sampleRate = _sampleRate;
+    sofaMetadata.numMeasurements = 1;
+    sofaMetadata.numSamples = 256;
+    sofaMetadata.dataType = String ("FIR");
+    sofaMetadata.RoomType = String ("None");
+    sofaMetadata.organization = String ("None");
+    sofaMetadata.SOFAConventions = String ("None");
+    sofaMetadata.listenerShortName = String ("None");
+    sofaMetadata.comment = String ("Passthrough Filter instead of broken HRTF");
+
+    sofaMetadata.minElevation =0.0;
+    sofaMetadata.maxElevation =0.0;
+
+    lengthOfHRIR = 256;
+    lengthOfFFT = 2 * lengthOfHRIR;
+    lengthOfHRTF = (lengthOfFFT * 0.5) + 1;
+ 
+    loadedHRIRs = (Single_HRIR_Measurement**)malloc(1 * sizeof(Single_HRIR_Measurement));
+    Single_HRIR_Measurement *measurement_object = new Single_HRIR_Measurement(lengthOfHRIR, lengthOfHRTF);
+
+    float *IR_Left = (float *)malloc(256 * sizeof(float));
+    float *IR_Right = (float *)malloc(256 * sizeof(float));
+    
+    IR_Left[0]  = 1.0;
+    IR_Right[0] = 1.0;
+    for (int j = 1; j < 256; j++) {
+        IR_Left[j]  = 0.0;
+        IR_Right[j] = 0.0;
+    };
+    
+
+    measurement_object->setValues(0.0, 0.0 , 0.0);
+    measurement_object->index = 0;
+    loadedHRIRs[0] = measurement_object;
+    free(IR_Left);
+    free(IR_Right);
+    
+}
+
+String SOFAData::getSOFAGlobalAttribute(const char* attribute_ID, int ncid){
+    size_t att_length = 0;
+    
+    //get length if possible
+
+
+    if(nc_inq_attlen(ncid, NC_GLOBAL, attribute_ID, &att_length))
+        return String("- Unknown - ");
+
+    
+    //get value if possible
+    char att[att_length + 1];
+    if(nc_get_att(ncid, NC_GLOBAL, attribute_ID, &att))
+        return String("- Unknown - ");
+    
+    //terminate string manually
+    att[att_length] = '\0';
+    
+    return String(att);
+}
+

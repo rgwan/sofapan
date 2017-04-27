@@ -2298,7 +2298,19 @@
     <ClInclude Include="..\..\Source\GUI\customLookAndFeel.h">
       <Filter>SofaPan\Source\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\GUI\elevationSliderLookAndFeel.h">
+      <Filter>SofaPan\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\GUI\HeadSideHexData.h">
+      <Filter>SofaPan\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\GUI\HeadTopHexData.h">
+      <Filter>SofaPan\Source\GUI</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\GUI\LogoHexData.h">
+      <Filter>SofaPan\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\GUI\SpeakerHexData.h">
       <Filter>SofaPan\Source\GUI</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\PluginProcessor.h">

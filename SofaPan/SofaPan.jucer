@@ -17,7 +17,15 @@
       <GROUP id="{51723BDB-0C84-0182-8911-B10250B6842A}" name="GUI">
         <FILE id="j2n80Y" name="customLookAndFeel.h" compile="0" resource="0"
               file="Source/GUI/customLookAndFeel.h"/>
+        <FILE id="vAHCIt" name="elevationSliderLookAndFeel.h" compile="0" resource="0"
+              file="Source/GUI/elevationSliderLookAndFeel.h"/>
+        <FILE id="FG2Ro2" name="HeadSideHexData.h" compile="0" resource="0"
+              file="Source/GUI/HeadSideHexData.h"/>
+        <FILE id="Xew6gt" name="HeadTopHexData.h" compile="0" resource="0"
+              file="Source/GUI/HeadTopHexData.h"/>
         <FILE id="lO5Hya" name="LogoHexData.h" compile="0" resource="0" file="Source/GUI/LogoHexData.h"/>
+        <FILE id="MVijtL" name="SpeakerHexData.h" compile="0" resource="0"
+              file="Source/GUI/SpeakerHexData.h"/>
       </GROUP>
       <FILE id="mo4Eu1" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

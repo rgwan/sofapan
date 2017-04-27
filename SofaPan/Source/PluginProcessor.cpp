@@ -28,8 +28,8 @@ SofaPanAudioProcessor::SofaPanAudioProcessor()
     
     addParameter(panParam = new AudioParameterFloat("pan", "Panorama", 0.f, 1.f, 0.f));
     addParameter(bypassParam = new AudioParameterFloat("bypass", "Bypass", 0.f, 1.f, 0.f));
+    addParameter(elevationParam = new AudioParameterFloat("elevation", "Elevation", 0.f, 1.f, 0.5f));
     
-    SOFAFile_loaded_flag = 0;
     
     HRTFs = NULL;
     
@@ -52,6 +52,8 @@ SofaPanAudioProcessor::SofaPanAudioProcessor()
     inverseL = NULL;
     inverseR = NULL;
     src = NULL;
+    
+    updateSofaMetadataFlag = false;
     
 }
 
@@ -151,7 +153,13 @@ void SofaPanAudioProcessor::initData(String sofaFile){
     HRTFs = new SOFAData(pathToSOFAFile.toUTF8(), (int)sampleRate_f);
     metadata_sofafile = HRTFs->getMetadata();
     
+    updateSofaMetadataFlag = true;
+    
     fir_length = HRTFs->getLengthOfHRIR();
+    
+    printf("\n Max Elevation Angle: %f", metadata_sofafile.maxElevation);
+    printf("\n Min Elevation Angle: %f \n ", metadata_sofafile.minElevation);
+    
     
     
     //Initialize Variables
@@ -186,11 +194,7 @@ void SofaPanAudioProcessor::initData(String sofaFile){
     overlapAddOutA1.clear();
     overlapAddOutB1.clear();
     
-    printf("\n oAU_A1: %d", overlapAddOutA1.getNumSamples());
-    printf("\n oAU_B1: %d", overlapAddOutB1.getNumSamples());
-    printf("\n oAU_A2: %d", overlapAddOutA2.getNumSamples());
-    printf("\n oAU_B2: %d", overlapAddOutB2.getNumSamples());
-    
+
     /* FFTW init ############################## */
     
     //first release old resources, if allocated
@@ -363,9 +367,11 @@ void SofaPanAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
         if(fifoIndex == fir_length)
         {
             
-            float angle = panParam->get() * 360.0;
-            fftwf_complex* hrtf = HRTFs->getHRTFforAngle(0.0, angle);
+            float azimuth = panParam->get() * 360.0;
+            float elevation = (elevationParam->get()-0.5) * 180.0;
+            fftwf_complex* hrtf = HRTFs->getHRTFforAngle(elevation, azimuth);
             
+            //printf("\n Elevation: %f", elevation);
             fifoIndex = 0;
             
             for(int i = 0; i< fir_length; i++){
@@ -427,8 +433,9 @@ void SofaPanAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
         if(fifoIndex2 == fir_length)
         {
             
-            float angle = panParam->get() * 360.0;
-            fftwf_complex* hrtf = HRTFs->getHRTFforAngle(0.0, angle);
+            float azimuth = panParam->get() * 360.0;
+            float elevation = (elevationParam->get()-0.5) * 180.0;
+            fftwf_complex* hrtf = HRTFs->getHRTFforAngle(elevation, azimuth);
             
             fifoIndex2 = 0;
             

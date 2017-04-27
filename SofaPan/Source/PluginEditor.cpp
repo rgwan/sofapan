@@ -22,18 +22,33 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     
     LookAndFeel::setDefaultLookAndFeel(&customLookAndFeel);
     
-    setSize (400, 300);
     
-    panner.setSliderStyle(Slider::Rotary);
-    panner.setCentrePosition(278, 155);
-    panner.setRange(0.0, 359.0, 1.0);
-    panner.setTextValueSuffix(" degrees");
-    panner.setPopupDisplayEnabled(false, this);
-    panner.setTextBoxStyle(Slider::TextBoxBelow, false, 70, 15);
-    panner.setColour(Slider::textBoxBackgroundColourId, Colours::white);
-    panner.setRotaryParameters(0, M_PI*2.0, false);
-    panner.addListener(this);
-    addAndMakeVisible(&panner);
+    setSize (800, 300);
+    
+    panner_az.setSliderStyle(Slider::Rotary);
+    //panner_az.setCentrePosition(278, 155);
+    panner_az.setRange(0.0, 359.0, 1.0);
+    panner_az.setTextValueSuffix(" degrees");
+    panner_az.setPopupDisplayEnabled(false, this);
+    panner_az.setTextBoxStyle(Slider::TextBoxBelow, false, 70, 15);
+    panner_az.setColour(Slider::textBoxBackgroundColourId, Colours::white);
+    panner_az.setRotaryParameters(0, M_PI*2.0, false);
+    panner_az.addListener(this);
+    addAndMakeVisible(&panner_az);
+
+    
+    panner_el.setSliderStyle(Slider::Rotary);
+    panner_el.setLookAndFeel(&elSliderLookAndFeel);
+    //panner_el.setCentrePosition(278, 155);
+    panner_el.setRange(-90.0, 90.0, 1.0);
+    panner_el.setTextValueSuffix(" degrees");
+    panner_el.setPopupDisplayEnabled(false, this);
+    panner_el.setTextBoxStyle(Slider::TextBoxBelow, false, 70, 15);
+    panner_el.setColour(Slider::textBoxBackgroundColourId, Colours::white);
+    panner_el.setRotaryParameters(M_PI, M_PI*2, true);
+    panner_el.addListener(this);
+    addAndMakeVisible(&panner_el);
+    
     
     loadSOFAButton.setButtonText ("Load HRTF");
     loadSOFAButton.addListener(this);
@@ -44,20 +59,14 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     bypassButton.addListener(this);
     addAndMakeVisible(&bypassButton);
     
-    showSOFADimensions_numMeasurements_label.setColour(Label::textColourId, Colours::white);
-    showSOFADimensions_numMeasurements_label.setText("Number of HRIRs:", NotificationType::sendNotification);
-    addAndMakeVisible(&showSOFADimensions_numMeasurements_label);
-    showSOFADimensions_numMeasurements.setColour(Label::textColourId, Colours::white);
-    addAndMakeVisible(&showSOFADimensions_numMeasurements);
-    
-    showSOFADimensions_numSamples_label.setColour(Label::textColourId, Colours::white);
-    showSOFADimensions_numSamples_label.setText("HRIR Size (Samples):", NotificationType::sendNotification);
-    addAndMakeVisible(&showSOFADimensions_numSamples_label);
-    showSOFADimensions_numSamples.setColour(Label::textColourId, Colours::white);
-    addAndMakeVisible(&showSOFADimensions_numSamples);
+    headTopImage = ImageCache::getFromMemory(headTopPicto, headTopPicto_Size);
+    headSideImage = ImageCache::getFromMemory(headSidePicto, headSidePicto_Size);
+    speakerImage = ImageCache::getFromMemory(speaker, speaker_Size);
     
     
     startTimer(50);
+    
+    
 
 }
 
@@ -74,29 +83,86 @@ void SofaPanAudioProcessorEditor::paint (Graphics& g)
     g.setFont (15.0f);
     
     
-    // Der Versuch einer Einteilung in Quadranten
+//    // Der Versuch einer Einteilung in Quadranten
     g.setColour(Colours::white);
     g.setOpacity(1.0f);
-    auto w = static_cast<float>(getWidth());
-    auto h = static_cast<float>(getHeight());
-    auto lineHorizontal = Line<float>(0, h * 0.5f, w, h * 0.5f);
-    auto lineVertical = Line<float>(w * 0.675f, 0.f, w * 0.675f, h);
-    float dashes[] = { 3, 3 };
-    g.drawDashedLine(lineHorizontal, dashes, 2);
-    g.drawDashedLine(lineVertical, dashes, 2);
+//    auto w = static_cast<float>(getWidth());
+//    auto h = static_cast<float>(getHeight());
+//    auto lineHorizontal = Line<float>(0, h * 0.5f, w, h * 0.5f);
+//    auto lineVertical = Line<float>(w * 0.675f, 0.f, w * 0.675f, h);
+//    float dashes[] = { 3, 3 };
+//    g.drawDashedLine(lineHorizontal, dashes, 2);
+//    g.drawDashedLine(lineVertical, dashes, 2);
     
     // Hier wird das HSD-Logo eingebunden
     const Image logo = ImageFileFormat::loadFrom(hsd_logo, hsd_logo_size);
     g.drawImageAt(logo, 0, getHeight()-40, true);
+    
+    Rectangle<int> rect = panner_az.getBounds();
+    int newWidth = rect.getWidth() - panner_az.getTextBoxHeight(); //always quadratic
+    rect.setSize(newWidth, newWidth);
+    const int pngPixelAdjust = 2;
+    g.drawImage(headTopImage,
+                rect.getCentreX()-rect.getWidth()/4 + 10,
+                rect.getCentreY()-rect.getHeight()/4 + 10 - pngPixelAdjust,
+                rect.getWidth()/2 - 20,
+                rect.getWidth()/2 - 20,
+                0, 0, 200, 200);
 
+    const int speakerSize = 40;
+    const int spaceBetweenSpeakerAndSlider = 6;
+    float sliderPosition = (float)panner_az.getValue() / 360.0;
+    AffineTransform t = AffineTransform().translated(rect.getCentreX()- speakerSize/2 ,
+                 rect.getY() - speakerSize - spaceBetweenSpeakerAndSlider). rotated((float)(M_PI*2.0*sliderPosition), (float)rect.getCentreX(), (float)rect.getCentreY());
+    
+    g.drawImageTransformed(speakerImage.rescaled(speakerSize, speakerSize),
+                           t,
+                           false);
+
+    
+    
+    rect = panner_el.getBounds();
+    newWidth = rect.getWidth() - panner_el.getTextBoxHeight();
+    rect.setSize(newWidth, newWidth);
+    g.drawImage(headSideImage,
+                rect.getCentreX()-rect.getWidth()/4 + 10,
+                rect.getCentreY()-rect.getHeight()/4 + 10,
+                rect.getWidth()/2 - 20,
+                rect.getWidth()/2 - 20,
+                0, 0, 200, 200);
+    
+    
+    sliderPosition = panner_el.getValue() / 360 + 0.75;
+    t = AffineTransform().translated(rect.getCentreX()- speakerSize/2 ,
+                                    rect.getY() - speakerSize - spaceBetweenSpeakerAndSlider). rotated((float)(M_PI*2.0*sliderPosition), (float)rect.getCentreX(), (float)rect.getCentreY());
+    
+    g.drawImageTransformed(speakerImage.rescaled(speakerSize, speakerSize),
+                           t,
+                           false);
+    
+    g.setFont(Font(20.f));
+    g.drawText("Azimuth", panner_az.getBounds().withHeight(40).translated(0, -40), juce::Justification::topLeft);
+    g.drawText("Elevation", panner_el.getBounds().withHeight(40).translated(0, -40), juce::Justification::topLeft);
+
+    g.setFont(Font(11));
+    //g.setFont(Font(Font::getDefaultMonospacedFontName(), 11, Font::bold));
+    g.drawFittedText(sofaMetadataID, 10, 100, 100, 100, Justification::topLeft, 3);
+    g.drawFittedText(sofaMetadataValue, 110, 100, 300, 100, Justification::topLeft, 3);
 }
 
 void SofaPanAudioProcessorEditor::resized()
 {
-    panner.setBounds(getWidth() * 0.25,
-                     getHeight() * 0.50 - getWidth() * 0.25,
-                     getWidth() * 0.5,
-                     getWidth() * 0.5);
+    const int panner_size = 200;
+    panner_az.setBounds(250,
+                     getHeight() * 0.50 - panner_size/2,
+                     panner_size,
+                     panner_size);
+    
+
+    panner_el.setBounds(550,
+                        getHeight() * 0.50 - panner_size/2,
+                        panner_size,
+                        panner_size);
     
     loadSOFAButton.setBounds(-5.,
                              10.,
@@ -107,38 +173,109 @@ void SofaPanAudioProcessorEditor::resized()
                            50.,
                            150.,
                            30.);
-    showSOFADimensions_numMeasurements_label.setBounds(10., 100., 150., 30.);
-    showSOFADimensions_numMeasurements.setBounds(110., 100., 150., 30.);
-    showSOFADimensions_numSamples_label.setBounds(10., 80., 150., 30.);
-    showSOFADimensions_numSamples.setBounds(130., 80., 150., 30.);
+    
+    //headTop.setBounds(0, 100, 100, 100);
 }
 
 // This timer periodically checks whether any of the filter's parameters have changed...
 void SofaPanAudioProcessorEditor::timerCallback() {
     float paramDegreeValue = getParameterValue("pan") * 360;
-    panner.setValue(paramDegreeValue, NotificationType::dontSendNotification);
+    panner_az.setValue(paramDegreeValue, NotificationType::dontSendNotification);
+    paramDegreeValue = (getParameterValue("elevation")-0.5) * 180;
+    panner_el.setValue(paramDegreeValue, NotificationType::dontSendNotification);
     bypassButton.setToggleState((bool)getParameterValue("bypass"), NotificationType::dontSendNotification);
     
-    juce::String numMeasurement_Note = static_cast <String> (processor.metadata_sofafile.numMeasurements);
-    showSOFADimensions_numMeasurements.setText(numMeasurement_Note, NotificationType::sendNotification);
     
-    juce::String numSamples_Note = static_cast <String> (processor.metadata_sofafile.numSamples);
-    showSOFADimensions_numSamples.setText(numSamples_Note, NotificationType::sendNotification);
+    
+    if(processor.updateSofaMetadataFlag){
+        String numMeasurement_Note = static_cast <String> (processor.metadata_sofafile.numMeasurements);
+        String numSamples_Note = static_cast <String> (processor.metadata_sofafile.numSamples);
+        String sofaConvections_Note = String(processor.metadata_sofafile.SOFAConventions);
+        String dataType_Note = String(processor.metadata_sofafile.dataType);
+        String organization_Note = String(processor.metadata_sofafile.organization);
+        String roomType_Note = String(processor.metadata_sofafile.RoomType);
+        float eleMin = processor.metadata_sofafile.minElevation;
+        float eleMax = processor.metadata_sofafile.maxElevation;
+        String elevationRange_Note;
+        if (eleMax-eleMin != 0.0){
+            String elevationMin = static_cast <String> (processor.metadata_sofafile.minElevation);
+            String elevationMax = static_cast <String> (processor.metadata_sofafile.maxElevation);
+            elevationRange_Note = (elevationMin + "° to " + elevationMax + "°" );
+        }else{
+            elevationRange_Note = "none";
+        }
+        String listenerShortName_Note = String(processor.metadata_sofafile.listenerShortName);
+        String comment_Note = String(processor.metadata_sofafile.comment);
+
+//        sofaMetadataValue = String(measurementsID + numMeasurement_Note + "\n" +
+//                                   samplesID + numSamples_Note + "\n" +
+//                                   sofaConventionID + sofaConvections_Note + "\n" +
+//                                   dataTypeID + dataType_Note + "\n" +
+//                                   organizationID + organization_Note + "\n" +
+//                                   roomTypeID + roomType_Note + "\n" +
+//                                   elevationRangID + elevationRange_Note + "\n" +
+//                                   listenerShortNameID + listenerShortName_Note + "\n" +
+//                                   commentID + comment_Note);
+
+        sofaMetadataValue = String(numMeasurement_Note + "\n" +
+                                   numSamples_Note + "\n" +
+                                   sofaConvections_Note + "\n" +
+                                   dataType_Note + "\n" +
+                                   organization_Note + "\n" +
+                                   listenerShortName_Note + "\n" +
+                                   roomType_Note + "\n" +
+                                   elevationRange_Note + "\n" +
+                                   comment_Note);
+        
+        float minSofaElevation = processor.metadata_sofafile.minElevation;
+        float maxSofaElevation = processor.metadata_sofafile.maxElevation;
+        if(maxSofaElevation - minSofaElevation > 0.0){
+            
+            printf("Is Greater Than Zero");
+            panner_el.setEnabled(true);
+            panner_el.setRange(minSofaElevation, maxSofaElevation);
+        }else{
+            panner_el.setValue(0.0);
+            
+            panner_el.setEnabled(false);
+            printf("Is Smaller Than Zero");
+            
+        }
+        float deg2rad = 2 * M_PI / 360.0;
+        panner_el.setRotaryParameters((270 + minSofaElevation)*deg2rad , (270 + maxSofaElevation)*deg2rad, true);
+        processor.updateSofaMetadataFlag = false;
+        repaint();
+    }
+    
     
 }
 
 void SofaPanAudioProcessorEditor::sliderValueChanged(Slider* slider)
 {
-    if(slider == &panner){
-        float panNormValue = panner.getValue() / 360;
+    printf("Slider Value Changed");
+    
+    if(slider == &panner_az){
+        float panNormValue = panner_az.getValue() / 360.0;
         setParameterValue("pan", panNormValue);
+        
+        repaint();
+    }
+    if(slider == &panner_el){
+        float elevationNormValue = (panner_el.getValue() / 180.0) + 0.5; //map -90/90 -> 0/1
+        setParameterValue("elevation", elevationNormValue);
+        repaint();
     }
 }
 
 void SofaPanAudioProcessorEditor::sliderDragStarted(Slider* slider)
 {
-    if (slider == &panner) {
+    if (slider == &panner_az) {
         if (AudioProcessorParameter* param = getParameter("pan")) {
+            param->beginChangeGesture();
+        }
+    }
+    if (slider == &panner_el) {
+        if (AudioProcessorParameter* param = getParameter("elevation")) {
             param->beginChangeGesture();
         }
     }
@@ -146,8 +283,13 @@ void SofaPanAudioProcessorEditor::sliderDragStarted(Slider* slider)
 
 void SofaPanAudioProcessorEditor::sliderDragEnded(Slider* slider)
 {
-    if (slider == &panner) {
+    if (slider == &panner_az) {
         if (AudioProcessorParameter* param = getParameter("pan")) {
+            param->endChangeGesture();
+        }
+    }
+    if (slider == &panner_el) {
+        if (AudioProcessorParameter* param = getParameter("elevation")) {
             param->endChangeGesture();
         }
     }
@@ -212,7 +354,6 @@ void SofaPanAudioProcessorEditor::buttonClicked(Button *button){
     }
     
     if (button == &bypassButton) {
-        bool togglestate = bypassButton.getToggleState();
         setParameterValue("bypass", bypassButton.getToggleState());
     }
 }
