@@ -218,10 +218,10 @@ void SofaPanAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
     float* outBufferR = buffer.getWritePointer (1);
     const float* inBuffer = buffer.getReadPointer(0);
     
-    float az = *panParam;
-    float el = *elevationParam;
+    float azimuth = panParam->get() * 360.0;
+    float elevation = (elevationParam->get()-0.5) * 180.0;
     
-    Filter->process(inBuffer, outBufferL, outBufferR, numberOfSamples, az, el);
+    Filter->process(inBuffer, outBufferL, outBufferR, numberOfSamples, azimuth, elevation);
 
 }
 

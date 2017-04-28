@@ -18,9 +18,6 @@
 #define IM 1
 
 
-/* The Modulation Buffer has the same amount of samples as the audio buffer. It contains the modulation curve of up to 4 parameters, stored in serial. So every parameter has N=bufSize/4 values per buffer and the Updaterate of the Modulation is Samplerate/4.
-    ModBuffer = [ P1_1 | P2_1 | P3_1 | P4_1 | P1_2 | P2_2 | .... | P4_N-1 | P1_N | P2_N | P3_N | P4_N]
- */
 class FilterEngine{
 
 public:
