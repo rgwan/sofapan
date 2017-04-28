@@ -15,7 +15,7 @@
 
 #include "fftw3.h"
 #include "SOFAData.h"
-
+#include "FilterEngine.h"
 
 //Interface für SOFA File:
 extern "C" {
@@ -157,6 +157,7 @@ private:
     float sampleRate_f;
     
     SOFAData* HRTFs;
+    FilterEngine* Filter;
     
 
     

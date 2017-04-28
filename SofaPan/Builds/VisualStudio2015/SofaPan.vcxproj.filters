@@ -397,6 +397,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\FilterEngine.cpp">
+      <Filter>SofaPan\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\SOFAData.cpp">
       <Filter>SofaPan\Source</Filter>
     </ClCompile>
@@ -2292,7 +2295,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\SOFAData.h">
+    <ClInclude Include="..\..\Source\FilterEngine.h">
       <Filter>SofaPan\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\GUI\customLookAndFeel.h">
@@ -2312,6 +2315,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\GUI\SpeakerHexData.h">
       <Filter>SofaPan\Source\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\SOFAData.h">
+      <Filter>SofaPan\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\PluginProcessor.h">
       <Filter>SofaPan\Source</Filter>

@@ -231,14 +231,14 @@ void SofaPanAudioProcessorEditor::timerCallback() {
         float maxSofaElevation = processor.metadata_sofafile.maxElevation;
         if(maxSofaElevation - minSofaElevation > 0.0){
             
-            printf("Is Greater Than Zero");
+            //printf("Is Greater Than Zero");
             panner_el.setEnabled(true);
             panner_el.setRange(minSofaElevation, maxSofaElevation);
         }else{
             panner_el.setValue(0.0);
             
             panner_el.setEnabled(false);
-            printf("Is Smaller Than Zero");
+            //printf("Is Smaller Than Zero");
             
         }
         float deg2rad = 2 * M_PI / 360.0;
@@ -252,7 +252,7 @@ void SofaPanAudioProcessorEditor::timerCallback() {
 
 void SofaPanAudioProcessorEditor::sliderValueChanged(Slider* slider)
 {
-    printf("Slider Value Changed");
+    //printf("Slider Value Changed");
     
     if(slider == &panner_az){
         float panNormValue = panner_az.getValue() / 360.0;
