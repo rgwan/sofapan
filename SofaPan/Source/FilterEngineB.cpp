@@ -1,17 +1,18 @@
 /*
   ==============================================================================
 
-    FilterEngine.cpp
-    Created: 27 Apr 2017 11:14:15am
+    FilterEngineB.cpp
+    Created: 28 Apr 2017 11:09:46am
     Author:  David Bau
 
   ==============================================================================
 */
 
-#include "FilterEngine.h"
+#include "FilterEngineB.h"
 
-FilterEngine::FilterEngine(SOFAData& sD)
-    : sofaData(sD), firLength(sD.getLengthOfHRIR())
+
+FilterEngineB::FilterEngineB(SOFAData& sD)
+: sofaData(sD), firLength(sD.getLengthOfHRIR())
 {
     //Initialize Variables
     fftLength = firLength * 2;
@@ -23,7 +24,7 @@ FilterEngine::FilterEngine(SOFAData& sD)
     lastInputBuffer = fftwf_alloc_real(firLength);
     outputBuffer_L = fftwf_alloc_real(firLength);
     outputBuffer_R = fftwf_alloc_real(firLength);
-
+    
     fftInputBuffer = fftwf_alloc_real(fftLength);
     complexBuffer = fftwf_alloc_complex(complexLength);
     src = fftwf_alloc_complex(complexLength);
@@ -35,16 +36,10 @@ FilterEngine::FilterEngine(SOFAData& sD)
     inverse_L = fftwf_plan_dft_c2r_1d(fftLength, complexBuffer, fftOutputBuffer_L, FFTW_ESTIMATE);
     inverse_R = fftwf_plan_dft_c2r_1d(fftLength, complexBuffer, fftOutputBuffer_R, FFTW_ESTIMATE);
     
-    weightingCurve = (float*)malloc(firLength*sizeof(float));
-    for(int i = 0; i < firLength; i++){
-        float theta = M_PI * 0.5 * (float)i / (float)firLength;
-        weightingCurve[i] = cosf(theta)*cosf(theta);
-    }
-    
     prepareToPlay();
 }
 
-FilterEngine::~FilterEngine(){
+FilterEngineB::~FilterEngineB(){
     fftwf_free(inputBuffer);
     fftwf_free(lastInputBuffer);
     fftwf_free(outputBuffer_L);
@@ -57,13 +52,14 @@ FilterEngine::~FilterEngine(){
     fftwf_destroy_plan(forward);
     fftwf_destroy_plan(inverse_L);
     fftwf_destroy_plan(inverse_R);
-    free(weightingCurve);
-
+    
 }
 
-void FilterEngine::prepareToPlay(){
+void FilterEngineB::prepareToPlay(){
     
     fifoIndex = 0;
+    
+
     
     for(int i = 0; i < firLength; i++){
         lastInputBuffer[i] = 0.0;
@@ -71,24 +67,23 @@ void FilterEngine::prepareToPlay(){
         outputBuffer_R[i] = 0.0;
     }
     
-    previousHRTF = sofaData.getHRTFforAngle(0.0, 0.0);
-    
+    previousHRTF = NULL;
     previousAzimuth = 0.0;
     previousElevation = 0.0;
     
 }
 
-void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, float azimuth, float elevation){
+void FilterEngineB::process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, float azimuth, float elevation){
     
     
     for(int sample = 0; sample < numSamples; sample++){
         
         inputBuffer[fifoIndex] = inBuffer[sample];
-
+        
         outBuffer_L[sample] = outputBuffer_L[fifoIndex];
         outBuffer_R[sample] = outputBuffer_R[fifoIndex];
-
-
+        
+        
         fifoIndex++;
         
         if(fifoIndex == firLength){
@@ -101,16 +96,16 @@ void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* out
                 lastInputBuffer[i] = inputBuffer[i];
             }
             
-//            int azimuthIndex = (sample - sample % 4);
-//            int elevationIndex = (sample - sample % 4) + 1;
-//            float azimuth = modBuffer[azimuthIndex];
-//            float elevation = modBuffer[elevationIndex];
+            //            int azimuthIndex = (sample - sample % 4);
+            //            int elevationIndex = (sample - sample % 4) + 1;
+            //            float azimuth = modBuffer[azimuthIndex];
+            //            float elevation = modBuffer[elevationIndex];
             
             fftwf_complex* hrtf = sofaData.getHRTFforAngle(elevation, azimuth);
-
-//            for(int i = 0; i< firLength; i++){
-//                fftInputBuffer[i+firLength] = 0.0; //Zweite Hälfte nullen
-//            }
+            
+            //            for(int i = 0; i< firLength; i++){
+            //                fftInputBuffer[i+firLength] = 0.0; //Zweite Hälfte nullen
+            //            }
             
             fftwf_execute(forward);
             
@@ -138,40 +133,38 @@ void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* out
             fftwf_execute(inverse_R);
             
             for(int i = 0; i < firLength; i++){
-                if(weightingCurve[i] > 1.0) printf("  %d Exceeds 1: %.3f", i, weightingCurve[i]);
-                outputBuffer_L[i] = fftOutputBuffer_L[i + firLength] * (1.0 - weightingCurve[i]);
-                outputBuffer_R[i] = fftOutputBuffer_R[i + firLength] * (1.0 - weightingCurve[i]);
-            }
-
-            
-            
-            //if((previousAzimuth != azimuth || previousElevation != elevation) && previousHRTF!=NULL ){
-            
-            //fftwf_complex* previousHRTF = sofaData.getHRTFforAngle(previousElevation , previousAzimuth);
-            
-                for ( int k=0; k<complexLength; k++ ) {
-                    complexBuffer[k][RE] = (src[k][RE] * previousHRTF[k][RE] - src[k][IM] * previousHRTF[k][IM]) * fftSampleScale;
-                    complexBuffer[k][IM] = (src[k][RE] * previousHRTF[k][IM] + src[k][IM] * previousHRTF[k][RE]) * fftSampleScale;
-                }
-                fftwf_execute(inverse_L);
-                
-                for ( int k=0; k<complexLength; k++ ) {
-                    complexBuffer[k][RE] = (src[k][RE] * previousHRTF[k+complexLength][RE] - src[k][IM] * previousHRTF[k+complexLength][IM]) * fftSampleScale;
-                    complexBuffer[k][IM] = (src[k][RE] * previousHRTF[k+complexLength][IM] + src[k][IM] * previousHRTF[k+complexLength][RE]) * fftSampleScale;
-                }
-
-            
-            
-            //}
-            
-            for(int i = 0; i < firLength; i++){
-                outputBuffer_L[i] += fftOutputBuffer_L[i + firLength] * weightingCurve[i];
-                outputBuffer_R[i] += fftOutputBuffer_R[i + firLength] * weightingCurve[i];
+                outputBuffer_L[i] = fftOutputBuffer_L[i + firLength];
+                outputBuffer_R[i] = fftOutputBuffer_R[i + firLength];
             }
             
-            previousHRTF = hrtf;
-            previousAzimuth = azimuth;
-            previousElevation = elevation;
+            
+            
+            //            if((previousAzimuth != azimuth || previousElevation != elevation) && previousHRTF!=NULL ){
+            //
+            //                for ( int k=0; k<complexLength; k++ ) {
+            //                    complexBuffer[k][RE] = (src[k][RE] * previousHRTF[k][RE] - src[k][IM] * previousHRTF[k][IM]) * fftSampleScale;
+            //                    complexBuffer[k][IM] = (src[k][RE] * previousHRTF[k][IM] + src[k][IM] * previousHRTF[k][RE]) * fftSampleScale;
+            //                }
+            //                fftwf_execute(inverse_L);
+            //
+            //                for ( int k=0; k<complexLength; k++ ) {
+            //                    complexBuffer[k][RE] = (src[k][RE] * previousHRTF[k+complexLength][RE] - src[k][IM] * previousHRTF[k+complexLength][IM]) * fftSampleScale;
+            //                    complexBuffer[k][IM] = (src[k][RE] * previousHRTF[k+complexLength][IM] + src[k][IM] * previousHRTF[k+complexLength][RE]) * fftSampleScale;
+            //                }
+            //                fftwf_execute(inverse_R);
+            //            }
+            //
+            //            if(fifoOutToBeUsed == 0){
+            //                memcpy(overlapAddOutBufferA_L, fftOutputBuffer_L, bufBytes);
+            //                memcpy(overlapAddOutBufferA_R, fftOutputBuffer_R, bufBytes);
+            //                fifoOutToBeUsed = 1;
+            //            }else{
+            //                memcpy(overlapAddOutBufferB_L, fftOutputBuffer_L, bufBytes);
+            //                memcpy(overlapAddOutBufferB_R, fftOutputBuffer_R, bufBytes);
+            //                fifoOutToBeUsed = 0;
+            //            }
+            //            
+            
             
             
             

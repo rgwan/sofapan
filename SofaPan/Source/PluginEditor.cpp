@@ -59,6 +59,11 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     bypassButton.addListener(this);
     addAndMakeVisible(&bypassButton);
     
+    testSwitchButton.setButtonText("Test Switch");
+    testSwitchButton.setColour(ToggleButton::textColourId, Colours::white);
+    testSwitchButton.addListener(this);
+    addAndMakeVisible(&testSwitchButton);
+ 
     headTopImage = ImageCache::getFromMemory(headTopPicto, headTopPicto_Size);
     headSideImage = ImageCache::getFromMemory(headSidePicto, headSidePicto_Size);
     speakerImage = ImageCache::getFromMemory(speaker, speaker_Size);
@@ -174,6 +179,11 @@ void SofaPanAudioProcessorEditor::resized()
                            150.,
                            30.);
     
+    testSwitchButton.setBounds(180.,
+                               50.,
+                               150.,
+                               30.);
+    
     //headTop.setBounds(0, 100, 100, 100);
 }
 
@@ -184,7 +194,7 @@ void SofaPanAudioProcessorEditor::timerCallback() {
     paramDegreeValue = (getParameterValue("elevation")-0.5) * 180;
     panner_el.setValue(paramDegreeValue, NotificationType::dontSendNotification);
     bypassButton.setToggleState((bool)getParameterValue("bypass"), NotificationType::dontSendNotification);
-    
+    //testSwitchButton.setToggleState((bool)getParameter("test"), NotificationType::dontSendNotification);
     
     
     if(processor.updateSofaMetadataFlag){
@@ -356,6 +366,9 @@ void SofaPanAudioProcessorEditor::buttonClicked(Button *button){
     if (button == &bypassButton) {
         setParameterValue("bypass", bypassButton.getToggleState());
     }
+    
+    if (button == &testSwitchButton)
+        setParameterValue("test", testSwitchButton.getToggleState());
 }
 
 

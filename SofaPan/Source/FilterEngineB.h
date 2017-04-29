@@ -1,15 +1,16 @@
 /*
   ==============================================================================
 
-    FilterEngine.h
-    Created: 27 Apr 2017 11:14:15am
+    FilterEngineB.h
+    Created: 28 Apr 2017 11:09:46am
     Author:  David Bau
 
   ==============================================================================
 */
 
-#ifndef FILTERENGINE_H_INCLUDED
-#define FILTERENGINE_H_INCLUDED
+#ifndef FILTERENGINEB_H_INCLUDED
+#define FILTERENGINEB_H_INCLUDED
+
 
 #include "SOFAData.h"
 #include "fftw3.h"
@@ -18,11 +19,11 @@
 #define IM 1
 
 
-class FilterEngine{
-
+class FilterEngineB{
+    
 public:
-    FilterEngine(SOFAData& sD);
-    ~FilterEngine();
+    FilterEngineB(SOFAData& sD);
+    ~FilterEngineB();
     
     void process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, float azimuth, float elevation);
     void prepareToPlay();
@@ -49,11 +50,10 @@ private:
     float* lastInputBuffer;
     float* outputBuffer_L;
     float* outputBuffer_R;
-    float* weightingCurve;
     
     int fifoIndex;
     
-    fftwf_complex* previousHRTF;
+    fftw_complex* previousHRTF;
     float previousAzimuth;
     float previousElevation;
     
@@ -63,5 +63,4 @@ private:
 };
 
 
-
-#endif  // FILTERENGINE_H_INCLUDED
+#endif  // FILTERENGINEB_H_INCLUDED

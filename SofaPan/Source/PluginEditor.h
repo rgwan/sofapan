@@ -49,6 +49,7 @@ private:
     Slider panner_el;
     TextButton loadSOFAButton;
     ToggleButton bypassButton;
+    ToggleButton testSwitchButton;
     const String measurementsID =       String("Measurements:         ");
     const String samplesID =            String("Samples:              ");
     const String sofaConventionID =     String("SOFA Convention:      ");

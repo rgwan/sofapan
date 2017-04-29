@@ -29,30 +29,13 @@ SofaPanAudioProcessor::SofaPanAudioProcessor()
     addParameter(panParam = new AudioParameterFloat("pan", "Panorama", 0.f, 1.f, 0.f));
     addParameter(bypassParam = new AudioParameterFloat("bypass", "Bypass", 0.f, 1.f, 0.f));
     addParameter(elevationParam = new AudioParameterFloat("elevation", "Elevation", 0.f, 1.f, 0.5f));
-    
+    addParameter(testSwitchParam = new AudioParameterBool("test", "Test Switch", false));
     
     HRTFs = NULL;
     Filter = NULL;
+    FilterB = NULL;
     
     sampleRate_f = 0;
-    
-    //Juce AudioBuffers are created, but the size is set in the init()-method
-    collectSampleBuffer1 = AudioBuffer<float>();
-    collectSampleBuffer2 = AudioBuffer<float>();
-    overlapAddOutA1 = AudioBuffer<float>();
-    overlapAddOutB1 = AudioBuffer<float>();
-    overlapAddOutA2 = AudioBuffer<float>();
-    overlapAddOutB2 = AudioBuffer<float>();
-    
-    //FFTW related pointers initially set to NULL, allocation happens in the init()-method
-    fftInputBuffer = NULL;
-    complexBuffer = NULL;
-    fftOutputBufferL = NULL;
-    fftOutputBufferR = NULL;
-    forward = NULL;
-    inverseL = NULL;
-    inverseR = NULL;
-    src = NULL;
     
     updateSofaMetadataFlag = false;
 
@@ -62,14 +45,6 @@ SofaPanAudioProcessor::SofaPanAudioProcessor()
 
 SofaPanAudioProcessor::~SofaPanAudioProcessor()
 {
-    fftwf_destroy_plan(forward);
-    fftwf_destroy_plan(inverseL);
-    fftwf_destroy_plan(inverseR);
-    fftwf_free(fftInputBuffer);
-    fftwf_free(complexBuffer);
-    fftwf_free(fftOutputBufferL);
-    fftwf_free(fftOutputBufferR);
-    fftwf_free(src);
 }
 
 //==============================================================================
@@ -158,6 +133,9 @@ void SofaPanAudioProcessor::initData(String sofaFile){
     if(Filter != NULL)
         delete Filter;
     Filter = new FilterEngine(*HRTFs);
+    if(FilterB != NULL)
+        delete FilterB;
+    FilterB = new FilterEngineB(*HRTFs);
     
     suspendProcessing(false);
 }
@@ -221,7 +199,11 @@ void SofaPanAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
     float azimuth = panParam->get() * 360.0;
     float elevation = (elevationParam->get()-0.5) * 180.0;
     
-    Filter->process(inBuffer, outBufferL, outBufferR, numberOfSamples, azimuth, elevation);
+    if(!*testSwitchParam)
+        Filter->process(inBuffer, outBufferL, outBufferR, numberOfSamples, azimuth, elevation);
+    else
+        FilterB->process(inBuffer, outBufferL, outBufferR, numberOfSamples, azimuth, elevation);
+
 
 }
 
