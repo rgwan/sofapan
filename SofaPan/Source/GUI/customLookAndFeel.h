@@ -15,7 +15,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
-class CustomLookAndFeel : public LookAndFeel_V3
+class CustomLookAndFeel : public LookAndFeel_V4
 {
 public:
     //==============================================================================

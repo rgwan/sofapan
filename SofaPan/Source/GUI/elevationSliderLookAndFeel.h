@@ -15,7 +15,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
-class ElevationSliderLookAndFeel : public LookAndFeel_V3
+class ElevationSliderLookAndFeel : public LookAndFeel_V4
 {
 public:
     //==============================================================================

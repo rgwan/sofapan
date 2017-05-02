@@ -20,7 +20,7 @@
 #include "HeadTopHexData.h"
 #include "HeadSideHexData.h"
 #include "SpeakerHexData.h"
-
+#include "SofaMetaDataView.h"
 
 
 //==============================================================================
@@ -48,26 +48,21 @@ private:
     Slider panner_az;
     Slider panner_el;
     TextButton loadSOFAButton;
+    TextButton showSOFAMetadataButton;
     ToggleButton bypassButton;
     ToggleButton testSwitchButton;
     const String measurementsID =       String("Measurements:         ");
     const String samplesID =            String("Samples:              ");
     const String sofaConventionID =     String("SOFA Convention:      ");
     const String dataTypeID =           String("Data Type:            ");
-    const String organizationID =       String("Organization:         ");
     const String listenerShortNameID =  String("Listener Short Name:  ");
-    const String roomTypeID =           String("Room Type:            ");
     const String elevationRangID =      String("Elevation Range:      ");
-    const String commentID =            String("Comment:              ");
-    const String sofaMetadataID = String(measurementsID + "\n" +
+    const String sofaMetadataID = String(listenerShortNameID + "\n" +
+                                         measurementsID + "\n" +
                                          samplesID + "\n" +
                                          sofaConventionID + "\n" +
                                          dataTypeID + "\n" +
-                                         organizationID + "\n" +
-                                         listenerShortNameID + "\n" +
-                                         roomTypeID + "\n" +
-                                         elevationRangID + "\n" +
-                                         commentID);
+                                         elevationRangID);
     
     String sofaMetadataValue;
     
@@ -85,6 +80,7 @@ private:
     Image headTopImage;
     Image headSideImage;
     
+    SofaMetadataView metadataView;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SofaPanAudioProcessorEditor)
 };

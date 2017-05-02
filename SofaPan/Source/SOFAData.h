@@ -33,13 +33,16 @@ typedef struct{
     int numSamples;
     int numReceivers;
     String dataType;
-    String organization;
-    String RoomType;
     String SOFAConventions;
     String listenerShortName;
-    String comment;
     float minElevation;
     float maxElevation;
+    
+    int numberOfGlobalAttributes;
+    //char** globalAttributeNames;
+    //char** globalAttributeValues;
+    Array<String> globalAttributeNames;
+    Array<String> globalAttributeValues;
     
 } sofaMetadataStruct;
 

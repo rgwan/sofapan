@@ -128,6 +128,39 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     if ((status = nc_open(filePath, NC_NOWRITE, &ncid)))
         return ERR_OPENFILE;
     
+    
+    
+    int numberOfAttributes;
+    nc_inq(ncid, NULL, NULL, &numberOfAttributes, NULL);
+    
+    printf("\nNumber Of Global Attributes: %d", numberOfAttributes);
+    
+    char name_of_att[NC_MAX_NAME + 1][numberOfAttributes];
+    char* attributes[numberOfAttributes];
+    
+    sofaMetadata.globalAttributeNames.resize(0);
+    sofaMetadata.globalAttributeValues.resize(0);
+    
+    for(int i = 0; i < numberOfAttributes; i++){
+        nc_inq_attname(ncid, NC_GLOBAL, i, name_of_att[i]);
+        
+        size_t attlength;
+        nc_inq_attlen(ncid, NC_GLOBAL, name_of_att[i], &attlength);
+        
+        char att[attlength + 1];
+        nc_get_att(ncid, NC_GLOBAL, name_of_att[i], &att);
+        att[attlength] = '\0';
+        attributes[i] = att;
+        
+        //printf("\nAttribute %d: %s: %s", i, name_of_att[i], attributes[i]);
+        sofaMetadata.globalAttributeNames.add(String(name_of_att[i]));
+        sofaMetadata.globalAttributeValues.add(String(attributes[i]));
+        
+    }
+    
+    
+    
+    
     /* -- check if attribute "SOFAConventions" is "SimpleFreeFieldHRIR": -- */
     String sofa_conv = getSOFAGlobalAttribute("SOFAConventions", ncid);
     if(sofa_conv.compare("SimpleFreeFieldHRIR")){
@@ -156,10 +189,7 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     
     
     //Get various Metadata
-    sofaMetadata.organization = getSOFAGlobalAttribute("Organization", ncid);
-    sofaMetadata.RoomType = getSOFAGlobalAttribute("RoomType", ncid);
     sofaMetadata.listenerShortName = getSOFAGlobalAttribute("ListenerShortName", ncid);
-    sofaMetadata.comment = getSOFAGlobalAttribute("Comment", ncid);
     /*
      .
      .  more to be added
@@ -375,11 +405,8 @@ void SOFAData::createPassThrough_FIR(int _sampleRate){
     sofaMetadata.numMeasurements = 1;
     sofaMetadata.numSamples = 256;
     sofaMetadata.dataType = String ("FIR");
-    sofaMetadata.RoomType = String ("None");
-    sofaMetadata.organization = String ("None");
     sofaMetadata.SOFAConventions = String ("None");
     sofaMetadata.listenerShortName = String ("None");
-    sofaMetadata.comment = String ("Passthrough Filter instead of broken HRTF");
 
     sofaMetadata.minElevation =0.0;
     sofaMetadata.maxElevation =0.0;

@@ -54,6 +54,7 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     loadSOFAButton.addListener(this);
     addAndMakeVisible(&loadSOFAButton);
     
+    
     bypassButton.setButtonText("Bypass");
     bypassButton.setColour(ToggleButton::textColourId, Colours::white);
     bypassButton.addListener(this);
@@ -67,6 +68,13 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     headTopImage = ImageCache::getFromMemory(headTopPicto, headTopPicto_Size);
     headSideImage = ImageCache::getFromMemory(headSidePicto, headSidePicto_Size);
     speakerImage = ImageCache::getFromMemory(speaker, speaker_Size);
+    
+    
+    showSOFAMetadataButton.setButtonText("Show More Information");
+    showSOFAMetadataButton.addListener(this);
+    addAndMakeVisible(&showSOFAMetadataButton);
+    addAndMakeVisible(&metadataView);
+    metadataView.setVisible(false);
     
     
     startTimer(50);
@@ -151,8 +159,8 @@ void SofaPanAudioProcessorEditor::paint (Graphics& g)
 
     g.setFont(Font(11));
     //g.setFont(Font(Font::getDefaultMonospacedFontName(), 11, Font::bold));
-    g.drawFittedText(sofaMetadataID, 10, 100, 100, 100, Justification::topLeft, 3);
-    g.drawFittedText(sofaMetadataValue, 110, 100, 300, 100, Justification::topLeft, 3);
+    g.drawFittedText(sofaMetadataID, 10, 130, 100, 100, Justification::topLeft, 3);
+    g.drawFittedText(sofaMetadataValue, 110, 130, 300, 100, Justification::topLeft, 3);
 }
 
 void SofaPanAudioProcessorEditor::resized()
@@ -174,13 +182,17 @@ void SofaPanAudioProcessorEditor::resized()
                              150.,
                              30.);
     
+    showSOFAMetadataButton.setBounds(-8, 200, 200, 30);
+    
+    metadataView.setBounds(getLocalBounds().reduced(20));
+    
     bypassButton.setBounds(10.,
                            50.,
                            150.,
                            30.);
     
-    testSwitchButton.setBounds(180.,
-                               50.,
+    testSwitchButton.setBounds(10.,
+                               80.,
                                150.,
                                30.);
     
@@ -198,12 +210,15 @@ void SofaPanAudioProcessorEditor::timerCallback() {
     
     
     if(processor.updateSofaMetadataFlag){
+        
+        
+        metadataView.setMetadata(processor.metadata_sofafile.globalAttributeNames, processor.metadata_sofafile.globalAttributeValues);
+        
+        
         String numMeasurement_Note = static_cast <String> (processor.metadata_sofafile.numMeasurements);
         String numSamples_Note = static_cast <String> (processor.metadata_sofafile.numSamples);
         String sofaConvections_Note = String(processor.metadata_sofafile.SOFAConventions);
         String dataType_Note = String(processor.metadata_sofafile.dataType);
-        String organization_Note = String(processor.metadata_sofafile.organization);
-        String roomType_Note = String(processor.metadata_sofafile.RoomType);
         float eleMin = processor.metadata_sofafile.minElevation;
         float eleMax = processor.metadata_sofafile.maxElevation;
         String elevationRange_Note;
@@ -215,27 +230,13 @@ void SofaPanAudioProcessorEditor::timerCallback() {
             elevationRange_Note = "none";
         }
         String listenerShortName_Note = String(processor.metadata_sofafile.listenerShortName);
-        String comment_Note = String(processor.metadata_sofafile.comment);
 
-//        sofaMetadataValue = String(measurementsID + numMeasurement_Note + "\n" +
-//                                   samplesID + numSamples_Note + "\n" +
-//                                   sofaConventionID + sofaConvections_Note + "\n" +
-//                                   dataTypeID + dataType_Note + "\n" +
-//                                   organizationID + organization_Note + "\n" +
-//                                   roomTypeID + roomType_Note + "\n" +
-//                                   elevationRangID + elevationRange_Note + "\n" +
-//                                   listenerShortNameID + listenerShortName_Note + "\n" +
-//                                   commentID + comment_Note);
-
-        sofaMetadataValue = String(numMeasurement_Note + "\n" +
+        sofaMetadataValue = String(listenerShortName_Note + "\n" +
+                                   numMeasurement_Note + "\n" +
                                    numSamples_Note + "\n" +
                                    sofaConvections_Note + "\n" +
                                    dataType_Note + "\n" +
-                                   organization_Note + "\n" +
-                                   listenerShortName_Note + "\n" +
-                                   roomType_Note + "\n" +
-                                   elevationRange_Note + "\n" +
-                                   comment_Note);
+                                   elevationRange_Note);
         
         float minSofaElevation = processor.metadata_sofafile.minElevation;
         float maxSofaElevation = processor.metadata_sofafile.maxElevation;
@@ -369,6 +370,10 @@ void SofaPanAudioProcessorEditor::buttonClicked(Button *button){
     
     if (button == &testSwitchButton)
         setParameterValue("test", testSwitchButton.getToggleState());
+    
+    if(button == &showSOFAMetadataButton){
+        metadataView.setVisible(true);
+    }
 }
 
 
