@@ -6,22 +6,22 @@ This is a university project from the University of Applied Sciences Duesseldorf
 # Features:
 - VST/AU
 - Mac/PC
-- 360 degree Sourround Panning of a Mono Input Source
+- 360 degree (Full Sphere: Azimuth & Elevation) Sourround Panning of a Mono Input Source
 - Load SOFA Files from disc during runtime 
 - Binaural Rendering via Fast Convolution
+- Access to SOFA Metadata (view only)
+- Crossfading between Convolution Products when the HRTF is exchanged (Angle changed) 
+- Graphical Representation (Plot) of current HRTF and HRIR 
 
 # Planned:
 - Documentation
 - Better Name
 - Linux Support
-- Full Sphere Panning (Azimuth & Elevation)
-- Graphical Feedback
 - Individualization of Head Characteristics, e.g. Ear Distance (ITD)
 - Early Reflections 
 - Variable Distance  
 - Headtracking
-- Access to SOFA Metadata (view only)
-- Different interpolation (for positions between measured HRTFs) and fading (for fast modulation of the position) techniques
+- Different interpolation techniques (for positions between measured HRTFs) 
 - … and of course bugfixes and improved audio quality.
 
 # Additional Dependencies:
