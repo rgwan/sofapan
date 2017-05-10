@@ -1,25 +1,25 @@
 /*
   ==============================================================================
 
-    customLookAndFeel.h
+    sofaPanLookAndFeel.h
     Created: 14 Dec 2016 3:25:21pm
     Author:  David Bau
 
   ==============================================================================
 */
 
-#ifndef CUSTOMLOOKANDFEEL_H_INCLUDED
-#define CUSTOMLOOKANDFEEL_H_INCLUDED
+#ifndef SOFAPANLOOKANDFEEL_H_INCLUDED
+#define SOFAPANLOOKANDFEEL_H_INCLUDED
 
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
-class CustomLookAndFeel : public LookAndFeel_V4
+class SofaPanLookAndFeel : public LookAndFeel_V4
 {
 public:
     //==============================================================================
-    CustomLookAndFeel()
+    SofaPanLookAndFeel()
     {
         setColour (ResizableWindow::backgroundColourId, windowBackgroundColour);
         setColour (TextButton::buttonOnColourId, brightButtonColour);
@@ -275,4 +275,4 @@ public:
 
 
 
-#endif  // CUSTOMLOOKANDFEEL_H_INCLUDED
+#endif  // SOFAPANLOOKANDFEEL_H_INCLUDED

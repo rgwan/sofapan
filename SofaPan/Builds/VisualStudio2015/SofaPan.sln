@@ -17,6 +17,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SofaPan", "SofaPan", "{983F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{5128F99F-CF33-C86D-EFA2-728C0F47745A}"
 	ProjectSection(SolutionItems) = preProject
+		..\..\Source\PlotHRIRComponent.h = ..\..\Source\PlotHRIRComponent.h
+		..\..\Source\PlotHRTFComponent.h = ..\..\Source\PlotHRTFComponent.h
 		..\..\Source\SofaMetadataView.h = ..\..\Source\SofaMetadataView.h
 		..\..\Source\FilterEngineB.cpp = ..\..\Source\FilterEngineB.cpp
 		..\..\Source\FilterEngineB.h = ..\..\Source\FilterEngineB.h
@@ -32,7 +34,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{5128F9
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GUI", "GUI", "{7355D112-FB5B-473B-260D-9EBDDE00CFBB}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\Source\GUI\customLookAndFeel.h = ..\..\Source\GUI\customLookAndFeel.h
+		..\..\Source\GUI\azimuthSliderLookAndFeel.h = ..\..\Source\GUI\azimuthSliderLookAndFeel.h
+		..\..\Source\GUI\sofaPanLookAndFeel.h = ..\..\Source\GUI\sofaPanLookAndFeel.h
 		..\..\Source\GUI\elevationSliderLookAndFeel.h = ..\..\Source\GUI\elevationSliderLookAndFeel.h
 		..\..\Source\GUI\HeadSideHexData.h = ..\..\Source\GUI\HeadSideHexData.h
 		..\..\Source\GUI\HeadTopHexData.h = ..\..\Source\GUI\HeadTopHexData.h

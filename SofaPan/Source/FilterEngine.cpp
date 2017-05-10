@@ -71,7 +71,7 @@ void FilterEngine::prepareToPlay(){
         outputBuffer_R[i] = 0.0;
     }
     
-    previousHRTF = sofaData.getHRTFforAngle(0.0, 0.0);
+    previousHRTF = sofaData.getHRTFforAngle(0.0, 0.0, 1.0);
     
     previousAzimuth = 0.0;
     previousElevation = 0.0;
@@ -106,7 +106,7 @@ void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* out
 //            float azimuth = modBuffer[azimuthIndex];
 //            float elevation = modBuffer[elevationIndex];
             
-            fftwf_complex* hrtf = sofaData.getHRTFforAngle(elevation, azimuth);
+            fftwf_complex* hrtf = sofaData.getHRTFforAngle(elevation, azimuth, 1.0);
 
 //            for(int i = 0; i< firLength; i++){
 //                fftInputBuffer[i+firLength] = 0.0; //Zweite Hälfte nullen
@@ -179,4 +179,8 @@ void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* out
     }
     
     
+}
+
+int FilterEngine::getComplexLength(){
+    return complexLength;
 }

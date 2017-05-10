@@ -245,3 +245,34 @@ void SofaPanAudioProcessor::setSOFAFilePath(String sofaString){
     pathToSOFAFile = sofaString;
 }
 
+fftwf_complex* SofaPanAudioProcessor::getCurrentHRTF(){
+    
+    if(HRTFs == NULL)
+        return NULL;
+    float azimuth = panParam->get() * 360.0;
+    float elevation = (elevationParam->get()-0.5) * 180.0;
+    fftwf_complex* hrtf = HRTFs->getHRTFforAngle(elevation, azimuth, 1.0);
+    return hrtf;
+}
+
+float* SofaPanAudioProcessor::getCurrentHRIR(){
+    
+    float azimuth = panParam->get() * 360.0;
+    float elevation = (elevationParam->get()-0.5) * 180.0;
+//        for(int i = 0; i< getComplexLength()-1; i++){
+//            printf("Processor: \n%d [%f]", i,  hrir.IR_Left[i]);
+//        }
+
+   
+    
+    return HRTFs->getHRIRForAngle(elevation, azimuth, 1.0);
+}
+
+int SofaPanAudioProcessor::getSampleRate(){
+    return (int)sampleRate_f;
+}
+
+int SofaPanAudioProcessor::getComplexLength(){
+    return Filter->getComplexLength();
+}
+

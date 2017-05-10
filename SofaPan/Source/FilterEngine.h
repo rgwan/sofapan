@@ -26,6 +26,7 @@ public:
     
     void process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, float azimuth, float elevation);
     void prepareToPlay();
+    int getComplexLength();
     
 private:
     SOFAData& sofaData;

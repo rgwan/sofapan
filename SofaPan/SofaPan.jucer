@@ -13,7 +13,11 @@
               splashScreenColour="Dark" buildStandalone="0" enableIAA="0">
   <MAINGROUP id="XmHYCT" name="SofaPan">
     <GROUP id="{044A0D15-8678-AA45-7263-8E06162C7D6C}" name="Source">
-      <FILE id="CkmPw5" name="SofaMetadataView.h" compile="0" resource="0"
+      <FILE id="V1UPIK" name="PlotHRIRComponent.h" compile="1" resource="0"
+            file="Source/PlotHRIRComponent.h"/>
+      <FILE id="f9m7wY" name="PlotHRTFComponent.h" compile="1" resource="0"
+            file="Source/PlotHRTFComponent.h" xcodeResource="0"/>
+      <FILE id="CkmPw5" name="SofaMetadataView.h" compile="1" resource="0"
             file="Source/SofaMetadataView.h"/>
       <FILE id="dQmM3E" name="FilterEngineB.cpp" compile="1" resource="0"
             file="Source/FilterEngineB.cpp"/>
@@ -22,8 +26,10 @@
             file="Source/FilterEngine.cpp"/>
       <FILE id="WitAML" name="FilterEngine.h" compile="0" resource="0" file="Source/FilterEngine.h"/>
       <GROUP id="{51723BDB-0C84-0182-8911-B10250B6842A}" name="GUI">
-        <FILE id="j2n80Y" name="customLookAndFeel.h" compile="0" resource="0"
-              file="Source/GUI/customLookAndFeel.h"/>
+        <FILE id="MNc1hT" name="azimuthSliderLookAndFeel.h" compile="0" resource="0"
+              file="Source/GUI/azimuthSliderLookAndFeel.h"/>
+        <FILE id="j2n80Y" name="sofaPanLookAndFeel.h" compile="0" resource="0"
+              file="Source/GUI/sofaPanLookAndFeel.h"/>
         <FILE id="vAHCIt" name="elevationSliderLookAndFeel.h" compile="0" resource="0"
               file="Source/GUI/elevationSliderLookAndFeel.h"/>
         <FILE id="FG2Ro2" name="HeadSideHexData.h" compile="0" resource="0"

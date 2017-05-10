@@ -101,7 +101,7 @@ void FilterEngineB::process(const float* inBuffer, float* outBuffer_L, float* ou
             //            float azimuth = modBuffer[azimuthIndex];
             //            float elevation = modBuffer[elevationIndex];
             
-            fftwf_complex* hrtf = sofaData.getHRTFforAngle(elevation, azimuth);
+            fftwf_complex* hrtf = sofaData.getHRTFforAngle(elevation, azimuth, 1.0);
             
             //            for(int i = 0; i< firLength; i++){
             //                fftInputBuffer[i+firLength] = 0.0; //Zweite Hälfte nullen

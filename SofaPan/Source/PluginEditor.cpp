@@ -18,17 +18,18 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    setSize (400, 400);
     
-    LookAndFeel::setDefaultLookAndFeel(&customLookAndFeel);
+    LookAndFeel::setDefaultLookAndFeel(&sofaPanLookAndFeel);
     
     
-    setSize (800, 300);
+    setSize (800, 500);
     
     panner_az.setSliderStyle(Slider::Rotary);
+    panner_az.setLookAndFeel(&azSliderLookAndFeel);
     //panner_az.setCentrePosition(278, 155);
     panner_az.setRange(0.0, 359.0, 1.0);
-    panner_az.setTextValueSuffix(" degrees");
+    panner_az.setTextValueSuffix(" deg");
     panner_az.setPopupDisplayEnabled(false, this);
     panner_az.setTextBoxStyle(Slider::TextBoxBelow, false, 70, 15);
     panner_az.setColour(Slider::textBoxBackgroundColourId, Colours::white);
@@ -41,7 +42,7 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     panner_el.setLookAndFeel(&elSliderLookAndFeel);
     //panner_el.setCentrePosition(278, 155);
     panner_el.setRange(-90.0, 90.0, 1.0);
-    panner_el.setTextValueSuffix(" degrees");
+    panner_el.setTextValueSuffix(" deg");
     panner_el.setPopupDisplayEnabled(false, this);
     panner_el.setTextBoxStyle(Slider::TextBoxBelow, false, 70, 15);
     panner_el.setColour(Slider::textBoxBackgroundColourId, Colours::white);
@@ -76,7 +77,11 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     addAndMakeVisible(&metadataView);
     metadataView.setVisible(false);
     
+    addAndMakeVisible(&plotHRTFView);
+    addAndMakeVisible(&plotHRIRView);
     
+    
+    counter = 0;
     startTimer(50);
     
     
@@ -167,13 +172,13 @@ void SofaPanAudioProcessorEditor::resized()
 {
     const int panner_size = 200;
     panner_az.setBounds(250,
-                     getHeight() * 0.50 - panner_size/2,
+                     300.0 * 0.50 - panner_size/2,
                      panner_size,
                      panner_size);
     
 
     panner_el.setBounds(550,
-                        getHeight() * 0.50 - panner_size/2,
+                        300.0 * 0.50 - panner_size/2,
                         panner_size,
                         panner_size);
     
@@ -196,18 +201,34 @@ void SofaPanAudioProcessorEditor::resized()
                                150.,
                                30.);
     
+    plotHRTFView.setBounds(25.0, 300.0, 350.0, 130.0);
+    plotHRIRView.setBounds(425.0, 300.0, 350.0, 130.0);
     //headTop.setBounds(0, 100, 100, 100);
 }
 
 // This timer periodically checks whether any of the filter's parameters have changed...
 void SofaPanAudioProcessorEditor::timerCallback() {
-    float paramDegreeValue = getParameterValue("pan") * 360;
-    panner_az.setValue(paramDegreeValue, NotificationType::dontSendNotification);
-    paramDegreeValue = (getParameterValue("elevation")-0.5) * 180;
-    panner_el.setValue(paramDegreeValue, NotificationType::dontSendNotification);
+    float azimuthValue = getParameterValue("pan") * 360;
+    if(azimuthValue != lastAzimuthValue)
+        panner_az.setValue(azimuthValue, NotificationType::dontSendNotification);
+    float elevationValue = (getParameterValue("elevation")-0.5) * 180;
+    if(elevationValue != lastElevationValue)
+        panner_el.setValue(elevationValue, NotificationType::dontSendNotification);
     bypassButton.setToggleState((bool)getParameterValue("bypass"), NotificationType::dontSendNotification);
     //testSwitchButton.setToggleState((bool)getParameter("test"), NotificationType::dontSendNotification);
     
+    
+
+    if(lastElevationValue!=elevationValue || lastAzimuthValue!=azimuthValue || processor.updateSofaMetadataFlag){
+        fftwf_complex* hrtf = processor.getCurrentHRTF();
+        float* hrir = processor.getCurrentHRIR();
+        int complexLength = processor.getComplexLength();
+        int firLength = complexLength - 1;
+        int sampleRate = processor.getSampleRate();
+        plotHRTFView.drawHRTF(hrtf, complexLength, sampleRate);
+        plotHRIRView.drawHRIR(hrir, firLength, processor.getSampleRate());
+    }
+   
     
     if(processor.updateSofaMetadataFlag){
         

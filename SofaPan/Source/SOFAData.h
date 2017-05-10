@@ -50,25 +50,20 @@ typedef struct{
 class Single_HRIR_Measurement {
 public:
     Single_HRIR_Measurement(int lengthHRIR, int lengthHRTF){
-        IR_Left = fftwf_alloc_real(lengthHRIR);
-        IR_Right = fftwf_alloc_real(lengthHRIR);
+        HRIR = fftwf_alloc_real(lengthHRIR * 2);
         HRTF = fftwf_alloc_complex(lengthHRTF * 2);
         
         
     }
     ~Single_HRIR_Measurement(){
-
-        
-        fftwf_free(IR_Left); //not allocated when freed
-        fftwf_free(IR_Right);
+        fftwf_free(HRIR); //not allocated when freed
         fftwf_free(HRTF);
         
     }
     void setValues(float azimuth, float elevation, float distance){
         Elevation = elevation; Azimuth = azimuth; Distance = distance;
     }
-    float *getIR_Left(){return  IR_Left;}//only for transformation
-    float *getIR_Right(){return IR_Right;}//only for transformation
+    float *getHRIR(){return  HRIR;}
     fftwf_complex* getHRTF(){return HRTF;}
     
     float Elevation;
@@ -77,8 +72,7 @@ public:
     int index;
     
 private:
-    float *IR_Left; //only for transformation
-    float *IR_Right;//only for transformation
+    float* HRIR;
     fftwf_complex* HRTF;
     
 };
@@ -98,8 +92,9 @@ public:
     /**
      Get the closest HRTF for a given elevation & azimuth. The function will return a pointer to the TF-Values (complex numbers): the left TF first, followed directly by the right TF. The returned HRTF has a length of 2*(HRIRlength/2 + 1): [ L=N/2+1 | R=N/2+1 ].
      */
-    fftwf_complex* getHRTFforAngle(float elevation, float azimuth);
-    
+    fftwf_complex* getHRTFforAngle(float elevation, float azimuth, float radius);
+    float* getHRIRForAngle(float elevation, float azimuth, float radius);
+
     sofaMetadataStruct getMetadata();
     
     /** Returns the length of the interpolated(!) Impulse Response in samples */

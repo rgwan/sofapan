@@ -14,13 +14,16 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 
-#include "customLookAndFeel.h"
+#include "sofaPanLookAndFeel.h"
+#include "azimuthSliderLookAndFeel.h"
 #include "elevationSliderLookAndFeel.h"
 #include "LogoHexData.h"
 #include "HeadTopHexData.h"
 #include "HeadSideHexData.h"
 #include "SpeakerHexData.h"
 #include "SofaMetaDataView.h"
+#include "PlotHRTFComponent.h"
+#include "PlotHRIRComponent.h"
 
 
 //==============================================================================
@@ -66,8 +69,9 @@ private:
     
     String sofaMetadataValue;
     
-    CustomLookAndFeel customLookAndFeel;
+    SofaPanLookAndFeel sofaPanLookAndFeel;
     ElevationSliderLookAndFeel elSliderLookAndFeel;
+    AzimuthSliderLookAndFeel azSliderLookAndFeel;
     
     AudioProcessorParameter* getParameter (const String& paramId);
     float getParameterValue (const String& paramId);
@@ -81,6 +85,12 @@ private:
     Image headSideImage;
     
     SofaMetadataView metadataView;
+    PlotHRTFComponent plotHRTFView;
+    PlotHRIRComponent plotHRIRView;
+    int counter;
+    
+    float lastElevationValue;
+    float lastAzimuthValue;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SofaPanAudioProcessorEditor)
 };

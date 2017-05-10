@@ -84,6 +84,11 @@ public:
     sofaMetadataStruct metadata_sofafile;
     void initData(String sofaFile);
     bool updateSofaMetadataFlag;
+    fftwf_complex* getCurrentHRTF();
+    float* getCurrentHRIR();
+    int getSampleRate();
+    int getComplexLength();
+    
     
 private:
     //==============================================================================
