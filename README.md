@@ -6,7 +6,7 @@ This is a university project from the University of Applied Sciences Duesseldorf
 # Features:
 - VST/AU
 - Mac/PC
-- 360 degree (Full Sphere: Azimuth & Elevation) Sourround Panning of a Mono Input Source
+- 360 degree (3D Full Sphere: Azimuth, Elevation & Distance(when provided)) Sourround Panning of a Mono Input Source
 - Load SOFA Files from disc during runtime 
 - Binaural Rendering via Fast Convolution
 - Access to SOFA Metadata (view only)
@@ -18,8 +18,8 @@ This is a university project from the University of Applied Sciences Duesseldorf
 - Better Name
 - Linux Support
 - Individualization of Head Characteristics, e.g. Ear Distance (ITD)
-- Early Reflections 
-- Variable Distance  
+- Early Reflections  
+- Distance Simulation
 - Headtracking
 - Different interpolation techniques (for positions between measured HRTFs) 
 - … and of course bugfixes and improved audio quality.
