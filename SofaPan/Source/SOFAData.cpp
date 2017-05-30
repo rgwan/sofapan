@@ -38,6 +38,12 @@ SOFAData::SOFAData(const char* filePath, int sampleRate){
     
     float normalisation = 1.0/maxValue;
     
+    for(int i = 0; i < sofaMetadata.numMeasurements; i++){
+        for(int j = 0; j < lengthOfHRIR * 2; j++){
+            loadedHRIRs[i]->getHRIR()[j] *= normalisation;
+        }
+    }
+    
     printf("\nMax Sample Value: %f \nNormalizing with scalefactor %f", maxValue, normalisation);
     
     //Allocate and init FFTW
@@ -50,7 +56,7 @@ SOFAData::SOFAData(const char* filePath, int sampleRate){
         
         //Write IR into inputBuffer and do zeropadding
         for(int k = 0; k < lengthOfHRIR; k++){
-            fftInputBuffer[k] = loadedHRIRs[i]->getHRIR()[k] * normalisation;
+            fftInputBuffer[k] = loadedHRIRs[i]->getHRIR()[k];
             fftInputBuffer[k+lengthOfHRIR] = 0.0;
         }
         
@@ -66,7 +72,7 @@ SOFAData::SOFAData(const char* filePath, int sampleRate){
         // RIGHT
         
         for(int k = 0; k < lengthOfHRIR; k++){
-            fftInputBuffer[k] = loadedHRIRs[i]->getHRIR()[k + lengthOfHRIR] * normalisation;
+            fftInputBuffer[k] = loadedHRIRs[i]->getHRIR()[k + lengthOfHRIR];
             fftInputBuffer[k+lengthOfHRIR] = 0.0;
         }
         
@@ -312,6 +318,9 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
     
     sofaMetadata.minElevation = 0.0;
     sofaMetadata.maxElevation = 0.0;
+    sofaMetadata.minDistance = 1000.0;
+    sofaMetadata.maxDistance = 0.0;
+    
     int i = 0, j = 0, l = 0, x = 0;
     float *IR_Left = (float *)malloc(dimN_len * sizeof(float));
     float *IR_Right = (float *)malloc(dimN_len * sizeof(float));
@@ -322,6 +331,8 @@ int SOFAData::loadSofaFile(const char* filePath, int hostSampleRate){
         
         if(SourcePosition[l+1] < sofaMetadata.minElevation) sofaMetadata.minElevation = SourcePosition[l+1];
         if(SourcePosition[l+1] > sofaMetadata.maxElevation) sofaMetadata.maxElevation = SourcePosition[l+1];
+        if(SourcePosition[l+2] < sofaMetadata.minDistance) sofaMetadata.minDistance = SourcePosition[l+2];
+        if(SourcePosition[l+2] > sofaMetadata.maxDistance) sofaMetadata.maxDistance = SourcePosition[l+2];
         
         Single_HRIR_Measurement *measurement_object = new Single_HRIR_Measurement(lengthOfHRIR, lengthOfHRTF);
         //Temporary storage of HRIR-Data

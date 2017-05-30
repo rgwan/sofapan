@@ -77,6 +77,7 @@ public:
     //Parameters
     AudioParameterFloat* panParam;
     AudioParameterFloat* elevationParam;
+    AudioParameterFloat* distanceParam;
     AudioParameterFloat* bypassParam;
     AudioParameterBool* testSwitchParam;
     

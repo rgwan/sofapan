@@ -23,7 +23,7 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     LookAndFeel::setDefaultLookAndFeel(&sofaPanLookAndFeel);
     
     
-    setSize (800, 500);
+    setSize (900, 500);
     
     panner_az.setSliderStyle(Slider::Rotary);
     panner_az.setLookAndFeel(&azSliderLookAndFeel);
@@ -50,6 +50,14 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     panner_el.addListener(this);
     addAndMakeVisible(&panner_el);
     
+    panner_dist.setSliderStyle(Slider::LinearVertical);
+    panner_dist.setRange(0.0, 1.0);
+    panner_dist.setTextValueSuffix(" m");
+    panner_dist.setPopupDisplayEnabled(false, this);
+    panner_dist.setTextBoxStyle(Slider::TextBoxBelow, false, 70, 15);
+    panner_dist.addListener(this);
+    addAndMakeVisible(&panner_dist);
+    
     
     loadSOFAButton.setButtonText ("Load HRTF");
     loadSOFAButton.addListener(this);
@@ -71,20 +79,23 @@ SofaPanAudioProcessorEditor::SofaPanAudioProcessorEditor (SofaPanAudioProcessor&
     speakerImage = ImageCache::getFromMemory(speaker, speaker_Size);
     
     
+    
+    
+    addAndMakeVisible(&plotHRTFView);
+    addAndMakeVisible(&plotHRIRView);
+    
     showSOFAMetadataButton.setButtonText("Show More Information");
     showSOFAMetadataButton.addListener(this);
     addAndMakeVisible(&showSOFAMetadataButton);
     addAndMakeVisible(&metadataView);
     metadataView.setVisible(false);
     
-    addAndMakeVisible(&plotHRTFView);
-    addAndMakeVisible(&plotHRIRView);
-    
-    
     counter = 0;
     startTimer(50);
     
-    
+    lastAzimuthValue = 0.0;
+    lastElevationValue = 0.0;
+    lastDistanceValue = 0.0;
 
 }
 
@@ -161,7 +172,8 @@ void SofaPanAudioProcessorEditor::paint (Graphics& g)
     g.setFont(Font(20.f));
     g.drawText("Azimuth", panner_az.getBounds().withHeight(40).translated(0, -40), juce::Justification::topLeft);
     g.drawText("Elevation", panner_el.getBounds().withHeight(40).translated(0, -40), juce::Justification::topLeft);
-
+    g.drawText("Distance", panner_dist.getBounds().withHeight(40).translated(0, -40), juce::Justification::topLeft);
+    
     g.setFont(Font(11));
     //g.setFont(Font(Font::getDefaultMonospacedFontName(), 11, Font::bold));
     g.drawFittedText(sofaMetadataID, 10, 130, 100, 100, Justification::topLeft, 3);
@@ -182,12 +194,18 @@ void SofaPanAudioProcessorEditor::resized()
                         panner_size,
                         panner_size);
     
+    
+    panner_dist.setBounds(750,
+                        300.0 * 0.50 - panner_size/2,
+                        100,
+                        panner_size);
+    
     loadSOFAButton.setBounds(-5.,
                              10.,
                              150.,
                              30.);
     
-    showSOFAMetadataButton.setBounds(-8, 200, 200, 30);
+    showSOFAMetadataButton.setBounds(-8, 230, 200, 30);
     
     metadataView.setBounds(getLocalBounds().reduced(20));
     
@@ -214,12 +232,15 @@ void SofaPanAudioProcessorEditor::timerCallback() {
     float elevationValue = (getParameterValue("elevation")-0.5) * 180;
     if(elevationValue != lastElevationValue)
         panner_el.setValue(elevationValue, NotificationType::dontSendNotification);
+    float distanceValue = (getParameterValue("distance"));
+    if(distanceValue != lastDistanceValue)
+        panner_dist.setValue(distanceValue, NotificationType::dontSendNotification);
     bypassButton.setToggleState((bool)getParameterValue("bypass"), NotificationType::dontSendNotification);
     //testSwitchButton.setToggleState((bool)getParameter("test"), NotificationType::dontSendNotification);
     
     
 
-    if(lastElevationValue!=elevationValue || lastAzimuthValue!=azimuthValue || processor.updateSofaMetadataFlag){
+    if(lastElevationValue!=elevationValue || lastAzimuthValue!=azimuthValue || lastDistanceValue!=distanceValue ||processor.updateSofaMetadataFlag){
         fftwf_complex* hrtf = processor.getCurrentHRTF();
         float* hrir = processor.getCurrentHRIR();
         int complexLength = processor.getComplexLength();
@@ -250,6 +271,16 @@ void SofaPanAudioProcessorEditor::timerCallback() {
         }else{
             elevationRange_Note = "none";
         }
+        float distMin = processor.metadata_sofafile.minDistance;
+        float distMax = processor.metadata_sofafile.maxDistance;
+        String distanceRange_Note;
+        if(distMax - distMin != 0.0){
+            String distanceMin = static_cast<String>(processor.metadata_sofafile.minDistance);
+            String distanceMax = static_cast<String>(processor.metadata_sofafile.maxDistance);
+            distanceRange_Note = (distanceMin + "m to " + distanceMax + "m" );
+        }else{
+            distanceRange_Note = "none";
+        }
         String listenerShortName_Note = String(processor.metadata_sofafile.listenerShortName);
 
         sofaMetadataValue = String(listenerShortName_Note + "\n" +
@@ -257,7 +288,9 @@ void SofaPanAudioProcessorEditor::timerCallback() {
                                    numSamples_Note + "\n" +
                                    sofaConvections_Note + "\n" +
                                    dataType_Note + "\n" +
-                                   elevationRange_Note);
+                                   elevationRange_Note + "\n" +
+                                   distanceRange_Note
+                                   );
         
         float minSofaElevation = processor.metadata_sofafile.minElevation;
         float maxSofaElevation = processor.metadata_sofafile.maxElevation;
@@ -273,12 +306,23 @@ void SofaPanAudioProcessorEditor::timerCallback() {
             //printf("Is Smaller Than Zero");
             
         }
+        
+        if(distMax - distMin > 0.0){
+            panner_dist.setEnabled(true);
+            panner_dist.setRange(distMin, distMax);
+        }else{
+            panner_dist.setValue(0.0);
+            panner_dist.setEnabled(false);
+        }
         float deg2rad = 2 * M_PI / 360.0;
         panner_el.setRotaryParameters((270 + minSofaElevation)*deg2rad , (270 + maxSofaElevation)*deg2rad, true);
         processor.updateSofaMetadataFlag = false;
         repaint();
     }
     
+    lastAzimuthValue = azimuthValue;
+    lastElevationValue = elevationValue;
+    lastDistanceValue = distanceValue;
     
 }
 
@@ -295,6 +339,10 @@ void SofaPanAudioProcessorEditor::sliderValueChanged(Slider* slider)
     if(slider == &panner_el){
         float elevationNormValue = (panner_el.getValue() / 180.0) + 0.5; //map -90/90 -> 0/1
         setParameterValue("elevation", elevationNormValue);
+        repaint();
+    }
+    if(slider == &panner_dist){
+        setParameterValue("distance", panner_dist.getValue());
         repaint();
     }
 }

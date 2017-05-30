@@ -131,7 +131,7 @@ public:
         }
         
         if(style == Slider::LinearVertical){
-            Rectangle<int> r = Rectangle<int> (x , y + haloRadius, width,  height- (haloRadius * 2));
+            Rectangle<int> r = Rectangle<int> (x , y + haloRadius, 40,  height- (haloRadius * 2));
             //printf("\n +++++++ WIDTH: %d", width);
             Rectangle<int> backgroundBar = r.withSizeKeepingCentre(2, r.getHeight());
             

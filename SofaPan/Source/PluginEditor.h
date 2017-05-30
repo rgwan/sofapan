@@ -50,6 +50,7 @@ private:
     
     Slider panner_az;
     Slider panner_el;
+    Slider panner_dist;
     TextButton loadSOFAButton;
     TextButton showSOFAMetadataButton;
     ToggleButton bypassButton;
@@ -60,12 +61,14 @@ private:
     const String dataTypeID =           String("Data Type:            ");
     const String listenerShortNameID =  String("Listener Short Name:  ");
     const String elevationRangID =      String("Elevation Range:      ");
+    const String distanceRangeID =      String("Distance Range:      ");
     const String sofaMetadataID = String(listenerShortNameID + "\n" +
                                          measurementsID + "\n" +
                                          samplesID + "\n" +
                                          sofaConventionID + "\n" +
                                          dataTypeID + "\n" +
-                                         elevationRangID);
+                                         elevationRangID + "\n" +
+                                         distanceRangeID);
     
     String sofaMetadataValue;
     
@@ -91,6 +94,7 @@ private:
     
     float lastElevationValue;
     float lastAzimuthValue;
+    float lastDistanceValue;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SofaPanAudioProcessorEditor)
 };

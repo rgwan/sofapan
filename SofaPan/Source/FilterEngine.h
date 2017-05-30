@@ -24,7 +24,7 @@ public:
     FilterEngine(SOFAData& sD);
     ~FilterEngine();
     
-    void process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, float azimuth, float elevation);
+    void process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, AudioParameterFloat* azimuthParam, AudioParameterFloat* elevationParam, AudioParameterFloat* distanceParam);
     void prepareToPlay();
     int getComplexLength();
     

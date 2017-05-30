@@ -29,6 +29,7 @@ SofaPanAudioProcessor::SofaPanAudioProcessor()
     addParameter(panParam = new AudioParameterFloat("pan", "Panorama", 0.f, 1.f, 0.f));
     addParameter(bypassParam = new AudioParameterFloat("bypass", "Bypass", 0.f, 1.f, 0.f));
     addParameter(elevationParam = new AudioParameterFloat("elevation", "Elevation", 0.f, 1.f, 0.5f));
+    addParameter(distanceParam = new AudioParameterFloat("distance", "Distance", 0.f, 1.f, 0.5f));
     addParameter(testSwitchParam = new AudioParameterBool("test", "Test Switch", false));
     
     HRTFs = NULL;
@@ -196,13 +197,18 @@ void SofaPanAudioProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer&
     float* outBufferR = buffer.getWritePointer (1);
     const float* inBuffer = buffer.getReadPointer(0);
     
-    float azimuth = panParam->get() * 360.0;
-    float elevation = (elevationParam->get()-0.5) * 180.0;
     
-    if(!*testSwitchParam)
-        Filter->process(inBuffer, outBufferL, outBufferR, numberOfSamples, azimuth, elevation);
-    else
-        FilterB->process(inBuffer, outBufferL, outBufferR, numberOfSamples, azimuth, elevation);
+    
+    //if(!*testSwitchParam)
+        Filter->process(inBuffer, outBufferL, outBufferR, numberOfSamples, panParam, elevationParam, distanceParam);
+    
+    float gain = 1.0;
+    if(distanceParam->get() > 0.1)
+        gain = 1.0 / distanceParam->get();
+        
+    buffer.applyGain(gain);
+    //else
+       // FilterB->process(inBuffer, outBufferL, outBufferR, numberOfSamples, panParam, elevationParam);
 
 
 }
@@ -251,7 +257,9 @@ fftwf_complex* SofaPanAudioProcessor::getCurrentHRTF(){
         return NULL;
     float azimuth = panParam->get() * 360.0;
     float elevation = (elevationParam->get()-0.5) * 180.0;
-    fftwf_complex* hrtf = HRTFs->getHRTFforAngle(elevation, azimuth, 1.0);
+    float distance = distanceParam->get();
+    printf("\n GetDistance: %f", distance);
+    fftwf_complex* hrtf = HRTFs->getHRTFforAngle(elevation, azimuth, distance);
     return hrtf;
 }
 
@@ -259,13 +267,14 @@ float* SofaPanAudioProcessor::getCurrentHRIR(){
     
     float azimuth = panParam->get() * 360.0;
     float elevation = (elevationParam->get()-0.5) * 180.0;
+    float distance = distanceParam->get();
 //        for(int i = 0; i< getComplexLength()-1; i++){
 //            printf("Processor: \n%d [%f]", i,  hrir.IR_Left[i]);
 //        }
 
    
     
-    return HRTFs->getHRIRForAngle(elevation, azimuth, 1.0);
+    return HRTFs->getHRIRForAngle(elevation, azimuth, distance);
 }
 
 int SofaPanAudioProcessor::getSampleRate(){

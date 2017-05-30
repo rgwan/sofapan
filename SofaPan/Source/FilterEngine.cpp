@@ -78,7 +78,7 @@ void FilterEngine::prepareToPlay(){
     
 }
 
-void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, float azimuth, float elevation){
+void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* outBuffer_R, int numSamples, AudioParameterFloat* azimuthParam, AudioParameterFloat* elevationParam, AudioParameterFloat* distanceParam){
     
     
     for(int sample = 0; sample < numSamples; sample++){
@@ -105,8 +105,11 @@ void FilterEngine::process(const float* inBuffer, float* outBuffer_L, float* out
 //            int elevationIndex = (sample - sample % 4) + 1;
 //            float azimuth = modBuffer[azimuthIndex];
 //            float elevation = modBuffer[elevationIndex];
+            float azimuth = azimuthParam->get() * 360.0;
+            float elevation = (elevationParam->get()-0.5) * 180.0;
+            float distance = distanceParam->get();
             
-            fftwf_complex* hrtf = sofaData.getHRTFforAngle(elevation, azimuth, 1.0);
+            fftwf_complex* hrtf = sofaData.getHRTFforAngle(elevation, azimuth, distance);
 
 //            for(int i = 0; i< firLength; i++){
 //                fftInputBuffer[i+firLength] = 0.0; //Zweite Hälfte nullen

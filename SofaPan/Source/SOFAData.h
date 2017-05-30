@@ -37,12 +37,17 @@ typedef struct{
     String listenerShortName;
     float minElevation;
     float maxElevation;
+    float minDistance;
+    float maxDistance;
+    float receiverPosition[2];
     
     int numberOfGlobalAttributes;
     //char** globalAttributeNames;
     //char** globalAttributeValues;
     Array<String> globalAttributeNames;
     Array<String> globalAttributeValues;
+    
+    
     
 } sofaMetadataStruct;
 
