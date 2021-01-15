@@ -3,6 +3,9 @@ Binaural Renderer Plugin. Can load HRTFs in the SOFA file format and customize i
 
 This is a university project from the University of Applied Sciences Duesseldorf, Germany. 
 
+# Setup:
+- `brew install netcdf`
+
 # Features:
 - VST/AU
 - Mac/PC
